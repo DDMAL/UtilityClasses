@@ -10,7 +10,10 @@ package mckay.utilities.sound.midi;
 
 import javax.sound.midi.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -229,8 +232,8 @@ public class MIDIMethods
       *					PPQ timing or if it is too large.
       */
      public static Sequence[] breakSequenceIntoWindows( Sequence original_sequence,
-          double window_duration,
-          double window_overlap_offset )
+                                                        double window_duration,
+                                                        double window_overlap_offset )
           throws Exception
      {
           if (original_sequence.getDivisionType() != Sequence.PPQ)
@@ -298,6 +301,8 @@ public class MIDIMethods
           
           // Prepare the original tracks of MIDI data
           Track[] original_tracks = original_sequence.getTracks();
+          // key = track, value = List of special midi messages
+          HashMap<Integer,List<MidiEvent>> specialEvents = new HashMap<>();
           
 // FILL IN THE WINDOWS HERE. REMEMBER THAT EACH WINDOW MUST CONTAIN COMPLETE META-DATA
 // AS WELL AS THE LAST RELEVANT PROGRAM CHANGE, PITCH BEND, ETC. MESSAGES.
@@ -305,7 +310,105 @@ public class MIDIMethods
 // Starts and ends are in window_start_ticks and window_end_ticks
 // Should start on tick 1 rather than tick 0?
           
+          int current_sequence_index = 0;
+          for(int track_index = 0; track_index < original_tracks.length; track_index++) 
+          {
+              Track track = original_tracks[track_index];
+              for(int i = 0; i < track.size(); i++) 
+              {
+                  MidiEvent thisEvent = track.get(i);
+                  MidiMessage thisMessage = thisEvent.getMessage();
+                  int statusByte = thisMessage.getStatus();
+                  long startTick = thisEvent.getTick();
+                  byte[] thisBytes = track.get(i).getMessage().getMessage();
+                  
+                  int sequence_index = getSequenceIndex(startTick, window_start_ticks, window_end_ticks);
+                  
+                  //MODULARIZE HERE
+                  //Check if we have new sequence to add special Events
+                  if(current_sequence_index != sequence_index) 
+                  {
+                      List<MidiEvent> thisTrackSpecialEvents = specialEvents.get(track_index);
+                      if(thisTrackSpecialEvents != null) 
+                      {
+                        specialEventsToNextSequence(track, thisTrackSpecialEvents);
+                      }
+                      current_sequence_index = sequence_index;
+                  }
+                  
+                  if(sequence_index == -1) 
+                  {
+                      throw new Exception("Array index does not match up with window ticks");
+                  }
+                  
+                  //MODULARIZE HERE
+                  //If special status byte then add to special message list
+                  if(statusByteIsSpecial(thisMessage)) 
+                  {
+                      List<MidiEvent> eventList = specialEvents.get(track_index);
+                      if(eventList == null) 
+                      {
+                          eventList = new ArrayList<>();
+                      }
+                      eventList.add(thisEvent);
+                  }
+                  Track thisTrack = windowed_tracks[sequence_index][track_index];
+                  thisTrack.add(thisEvent);
+              }
+          }
+          
           // Return the windows of MIDI data
           return windowed_sequences;
+     }
+     
+     /**
+      * Adds all special messages to new track for a new sequence window.
+      * @param track
+      * @param specialEvents 
+      */
+     private static void specialEventsToNextSequence(Track track, 
+                                            List<MidiEvent> specialEvents) {
+         for(MidiEvent event : specialEvents) {
+             track.add(event);
+         }
+     }
+     
+     /**
+      * Switch statement for all special midi message status bytes.
+      * @param status
+      * @return true for 255 or else false
+      */
+     private static boolean statusByteIsSpecial(MidiMessage message) {
+         int status = message.getStatus();
+         switch (status) {
+             case 255 : return true; //meta message
+             case 201 : return true; //program change
+             default : return false;
+         }
+     }
+     
+     /**
+      * Helper method for breakSequenceIntoWindows to validate tick indices.
+      * @param thisTick
+      * @param window_start_ticks
+      * @param window_end_ticks 
+      */
+     private static int getSequenceIndex(long thisTick, int[] window_start_ticks, int[] window_end_ticks) {
+         int intTick = (int)thisTick; //checked 
+         
+         //Check if thisTick is greater than last tick
+         //or else make it this tick
+         int lastIndex = window_end_ticks.length - 1;
+         if(intTick > window_end_ticks[lastIndex]) {
+             return lastIndex;
+         }
+         
+         //Check all ticks to find proper window
+         for(int i = 0; i < window_start_ticks.length; i++) {
+             if(window_start_ticks[i] <= intTick && window_end_ticks[i] >= intTick) {
+                 return i;
+             }
+         }
+         return -1; //this only happens if an error occured
      }
 }
