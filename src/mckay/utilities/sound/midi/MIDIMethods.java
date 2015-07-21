@@ -389,8 +389,6 @@ public class MIDIMethods
      }
      
      /**
-      * WARNING
-      * NEED TO DEEP COPY FOR THIS TO WORK PROPERLY
       * Used to replace ticks to current sequence window when changing window
       * and copying over special midi events to new window.
       * Copy at tick 0 because we want to start in a new window sequence.
