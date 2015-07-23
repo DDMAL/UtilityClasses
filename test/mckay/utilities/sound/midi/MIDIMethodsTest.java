@@ -6,6 +6,7 @@
 package mckay.utilities.sound.midi;
 
 import java.io.File;
+import java.util.List;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
@@ -56,10 +57,31 @@ public class MIDIMethodsTest {
         test_sequence_1.add(MidiBuildMessage.createNoteOffEvent(35, 512, 0));
         
         //512 ticks per second with 0.5 second windows makes 4 windows in 1024 ticks
-        Sequence[] windows = MIDIMethods.breakSequenceIntoWindows(sequence, 0.5, 0);
+        double window_duration = 0.5;
+        double window_overlap_offset = 0;
+        double[] seconds_per_tick = MIDIMethods.getSecondsPerTick(sequence);
+        List<int[]> startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequence, 
+                                                                            window_duration, 
+                                                                           window_overlap_offset,
+                                                                           seconds_per_tick);
+        int[] start_ticks = startEndTickArrays.get(0);
+        int[] end_ticks = startEndTickArrays.get(1);
+        Sequence[] windows = MIDIMethods.breakSequenceIntoWindows(sequence, 
+                                                                window_duration, 
+                                                                window_overlap_offset,
+                                                                start_ticks,
+                                                                end_ticks);
         assertEquals(4, windows.length);
         
-        Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, 1, 0);
+        window_duration = 1.0;
+        window_overlap_offset = 0;
+        startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequence, 
+                                                                            window_duration, 
+                                                                           window_overlap_offset,
+                                                                           seconds_per_tick);
+        start_ticks = startEndTickArrays.get(0);
+        end_ticks = startEndTickArrays.get(1);
+        Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, 1, 0,start_ticks,end_ticks);
         for (int s = 0; s < windowed_sequences.length; s++) 
         {
             Sequence actualSequence = windowed_sequences[s];
@@ -117,7 +139,16 @@ public class MIDIMethodsTest {
         test_sequence_key_1.add(MidiBuildMessage.createKeySignature("1s", "minor", 0));
         test_sequence_key_1.add(MidiBuildMessage.createNoteOffEvent(35, 512, 0));
         
-        Sequence[] windowed_sequences_key = MIDIMethods.breakSequenceIntoWindows(sequenceKeysig, 1, 0);
+        window_duration = 1.0;
+        window_overlap_offset = 0;
+        seconds_per_tick = MIDIMethods.getSecondsPerTick(sequenceKeysig);
+        startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequenceKeysig, 
+                                                                            window_duration, 
+                                                                           window_overlap_offset,
+                                                                           seconds_per_tick);
+        start_ticks = startEndTickArrays.get(0);
+        end_ticks = startEndTickArrays.get(1);
+        Sequence[] windowed_sequences_key = MIDIMethods.breakSequenceIntoWindows(sequenceKeysig, 1, 0,start_ticks,end_ticks);
         for (int s = 0; s < windowed_sequences_key.length; s++) 
         {
             Sequence actualSequence = windowed_sequences_key[s];
@@ -180,7 +211,16 @@ public class MIDIMethodsTest {
         test_sequence_tempo_2.add(MidiBuildMessage.createTrackTempo(90, 0));
         test_sequence_tempo_2.add(MidiBuildMessage.createNoteOffEvent(35, 254, 0));
         
-        Sequence[] windowed_sequence_tempo = MIDIMethods.breakSequenceIntoWindows(sequenceTempo, 1, 0);
+        window_duration = 1.0;
+        window_overlap_offset = 0;
+        seconds_per_tick = MIDIMethods.getSecondsPerTick(sequenceTempo);
+        startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequenceTempo, 
+                                                                            window_duration, 
+                                                                           window_overlap_offset,
+                                                                           seconds_per_tick);
+        start_ticks = startEndTickArrays.get(0);
+        end_ticks = startEndTickArrays.get(1);
+        Sequence[] windowed_sequence_tempo = MIDIMethods.breakSequenceIntoWindows(sequenceTempo, 1, 0,start_ticks,end_ticks);
         assertEquals(3, windowed_sequence_tempo.length);
         
         for (int s = 0; s < windowed_sequence_tempo.length; s++) 
@@ -229,7 +269,17 @@ public class MIDIMethodsTest {
         File mozartFile = new File("./test/mckay/utilities/sound/midi/"
                                 + "midi-test-resources/Mozart_Quintett.midi");
         Sequence mozartSequence = MidiSystem.getSequence(mozartFile);
-        Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence, 10, 0);
+        
+        window_duration = 10.0;
+        window_overlap_offset = 0;
+        seconds_per_tick = MIDIMethods.getSecondsPerTick(mozartSequence);
+        startEndTickArrays = MIDIMethods.getStartEndTickArrays(mozartSequence, 
+                                                               window_duration, 
+                                                               window_overlap_offset,
+                                                               seconds_per_tick);
+        start_ticks = startEndTickArrays.get(0);
+        end_ticks = startEndTickArrays.get(1);
+        Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence, 10, 0,start_ticks,end_ticks);
         
         int sequence_num = 0;
         for(Sequence mozart_sequence : mozart_sequence_windows)

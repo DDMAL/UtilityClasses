@@ -10,8 +10,10 @@ package mckay.utilities.sound.midi;
 
 import javax.sound.midi.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -208,8 +210,8 @@ public class MIDIMethods
      
      
      /**
-      * <B>IMPORTANT: THIS METHOD IS NOT YET FINISHED. IT CURRENTLY ONLY OUTPUTS EMPTY
-      * WINDOWS OF MIDI DATA.</b>
+      * <B>IMPORTANT: THIS METHOD IS DEPENDENT ON getStartEndTickArrays()
+      * method below for int[] start_ticks and int[] end_ticks.</b>
       *
       * Breaks the given MIDI Sequence into windows of equal duration. These
       * windows may or may not be overlapping. The original Sequence is not
@@ -222,6 +224,8 @@ public class MIDIMethods
       * @param	window_overlap_offset   The number of seconds that windows are
       *                                 offset by. A value of zero means that
       *                                 there is no window overlap.
+     * @param window_start_ticks
+     * @param window_end_ticks
       * @return				An array of sequences representing the
       *					windows of the original sequence in
       *					consecutive order.
@@ -231,7 +235,9 @@ public class MIDIMethods
       */
      public static Sequence[] breakSequenceIntoWindows( Sequence original_sequence,
                                                         double window_duration,
-                                                        double window_overlap_offset )
+                                                        double window_overlap_offset,
+                                                        int[] window_start_ticks,
+                                                        int[] window_end_ticks)
           throws Exception
      {
           if (original_sequence.getDivisionType() != Sequence.PPQ)
@@ -239,51 +245,6 @@ public class MIDIMethods
                     "\nOnly PPQ time encoding is accepted here.");
           if ( ((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
                throw new Exception("The MIDI sequence could not be processed because it is too long.");
-          
-          // Get an array with a value at each indice that gives the duration of a tick in
-          // seconds at that particular point in the recording.
-          double[] seconds_per_tick = getSecondsPerTick(original_sequence);
-          
-          // Calculate the window start and end tick indices
-          LinkedList<Integer> window_start_ticks_list = new LinkedList<Integer>();
-          LinkedList<Integer> window_end_ticks_list = new LinkedList<Integer>();
-          double total_duration = original_sequence.getMicrosecondLength() / 1000000.0;
-          double time_interval_to_next_tick = window_duration - window_overlap_offset;
-          boolean found_next_tick = false;
-          int tick_of_next_beginning = 0;
-          int this_tick = 0;
-          double total_seconds_accumulated_so_far = 0.0;
-          while (total_seconds_accumulated_so_far < total_duration && this_tick < seconds_per_tick.length)
-          {
-               window_start_ticks_list.add(new Integer(this_tick));
-               double seconds_accumulated_so_far = 0.0;
-               while (seconds_accumulated_so_far < window_duration && this_tick < seconds_per_tick.length)
-               {
-                    seconds_accumulated_so_far += seconds_per_tick[this_tick];
-                    this_tick++;
-                    if (!found_next_tick)
-                         if (seconds_accumulated_so_far > time_interval_to_next_tick)
-                         {
-                         tick_of_next_beginning = this_tick;
-                         found_next_tick = true;
-                         }
-               }
-               window_end_ticks_list.add(new Integer(this_tick - 1));
-               if (found_next_tick)
-                    this_tick = tick_of_next_beginning;
-               found_next_tick = false;
-               total_seconds_accumulated_so_far += seconds_accumulated_so_far - window_overlap_offset;
-          }
-          
-          // Store the window start and end tick indices
-          Integer[] window_start_ticks_I = window_start_ticks_list.toArray(new Integer[1]);
-          int[] window_start_ticks = new int[window_start_ticks_I.length];
-          for (int i = 0; i < window_start_ticks.length; i++)
-               window_start_ticks[i] = window_start_ticks_I[i].intValue();
-          Integer[] window_end_ticks_I = window_end_ticks_list.toArray(new Integer[1]);
-          int[] window_end_ticks = new int[window_end_ticks_I.length];
-          for (int i = 0; i < window_end_ticks.length; i++)
-               window_end_ticks[i] = window_end_ticks_I[i].intValue();
           
           // Prepare the sequences representing each window of MIDI data and the tracks in
           // each sequence
@@ -337,6 +298,64 @@ public class MIDIMethods
           }
           // Return the windows of MIDI data
           return windowed_sequences;
+     }
+     
+     public static List<int[]> getStartEndTickArrays(Sequence original_sequence,
+                                                        double window_duration,
+                                                        double window_overlap_offset,
+                                                        double[] seconds_per_tick) throws Exception {
+         if (original_sequence.getDivisionType() != Sequence.PPQ)
+               throw new Exception("The specified MIDI sequence uses SMPTE time encoding." +
+                    "\nOnly PPQ time encoding is accepted here.");
+          if ( ((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
+               throw new Exception("The MIDI sequence could not be processed because it is too long.");
+          
+          // Calculate the window start and end tick indices
+          LinkedList<Integer> window_start_ticks_list = new LinkedList<Integer>();
+          LinkedList<Integer> window_end_ticks_list = new LinkedList<Integer>();
+          double total_duration = original_sequence.getMicrosecondLength() / 1000000.0;
+          double time_interval_to_next_tick = window_duration - window_overlap_offset;
+          boolean found_next_tick = false;
+          int tick_of_next_beginning = 0;
+          int this_tick = 0;
+          double total_seconds_accumulated_so_far = 0.0;
+          while (total_seconds_accumulated_so_far < total_duration && this_tick < seconds_per_tick.length)
+          {
+               window_start_ticks_list.add(new Integer(this_tick));
+               double seconds_accumulated_so_far = 0.0;
+               while (seconds_accumulated_so_far < window_duration && this_tick < seconds_per_tick.length)
+               {
+                    seconds_accumulated_so_far += seconds_per_tick[this_tick];
+                    this_tick++;
+                    if (!found_next_tick)
+                         if (seconds_accumulated_so_far > time_interval_to_next_tick)
+                         {
+                         tick_of_next_beginning = this_tick;
+                         found_next_tick = true;
+                         }
+               }
+               window_end_ticks_list.add(new Integer(this_tick - 1));
+               if (found_next_tick)
+                    this_tick = tick_of_next_beginning;
+               found_next_tick = false;
+               total_seconds_accumulated_so_far += seconds_accumulated_so_far - window_overlap_offset;
+          }
+          
+          // Store the window start and end tick indices
+          Integer[] window_start_ticks_I = window_start_ticks_list.toArray(new Integer[1]);
+          int[] window_start_ticks = new int[window_start_ticks_I.length];
+          for (int i = 0; i < window_start_ticks.length; i++)
+               window_start_ticks[i] = window_start_ticks_I[i].intValue();
+          Integer[] window_end_ticks_I = window_end_ticks_list.toArray(new Integer[1]);
+          int[] window_end_ticks = new int[window_end_ticks_I.length];
+          for (int i = 0; i < window_end_ticks.length; i++)
+               window_end_ticks[i] = window_end_ticks_I[i].intValue();
+          
+          List<int[]> startEndTickList = new ArrayList<>();
+          startEndTickList.add(window_start_ticks);
+          startEndTickList.add(window_end_ticks);
+          
+          return startEndTickList;
      }
      
      /**
