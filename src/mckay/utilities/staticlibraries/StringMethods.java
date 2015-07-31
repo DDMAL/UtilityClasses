@@ -878,7 +878,7 @@ public class StringMethods
      public static String getDoubleInScientificNotation(double number_to_round,
           int significant_digits)
      {
-          if (number_to_round == Double.NaN)
+          if (Double.isNaN(number_to_round))
                return new String("NaN");
           if (number_to_round == Double.NEGATIVE_INFINITY)
                return new String("-Infinity");

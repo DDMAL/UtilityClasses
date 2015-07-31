@@ -260,13 +260,7 @@ public class MIDIMethods
           
           // Prepare the original tracks of MIDI data
           Track[] original_tracks = original_sequence.getTracks();
-          
-// FILL IN THE WINDOWS HERE. REMEMBER THAT EACH WINDOW MUST CONTAIN COMPLETE META-DATA
-// AS WELL AS THE LAST RELEVANT PROGRAM CHANGE, PITCH BEND, ETC. MESSAGES.
-          
-// Starts and ends are in window_start_ticks and window_end_ticks
-// Should start on tick 1 rather than tick 0?
-          
+               
           int current_sequence_index = 0;
           for(int track_index = 0; track_index < original_tracks.length; track_index++) 
           {
@@ -396,13 +390,13 @@ public class MIDIMethods
      private static void checkForSpecialMidiEvent(MidiEvent thisEvent,
                                  HashMap<Byte,MidiEvent> thisTrackSpecialEvents)
      {
-         Byte midiStatusHash = getMidiMetaStatusHash(thisEvent);
          MidiMessage thisMessage = thisEvent.getMessage();
          
          //COULD ALSO DO THIS BASED OF MIDIMETASTATUSHASH
          //If special status byte then add to special message list
          if(statusByteIsSpecial(thisMessage)) 
          {
+             Byte midiStatusHash = getMidiMetaStatusHash(thisEvent);
              thisTrackSpecialEvents.put(midiStatusHash, thisEvent);
          }        
      }
@@ -444,8 +438,19 @@ public class MIDIMethods
       * @return 
       */
      private static Byte getMidiMetaStatusHash(MidiEvent newEvent) {
-         byte[] newMidiMessageArray = newEvent.getMessage().getMessage();
-         Byte metaTypeByte = newMidiMessageArray[1]; //this is the hash value
+         MidiMessage message = newEvent.getMessage();
+         byte[] newMidiMessageArray = message.getMessage();
+         int status = message.getStatus();
+         Byte metaTypeByte;
+         //program change
+         if(status == 192) {
+            metaTypeByte = newMidiMessageArray[0];
+         }
+         //meta-message
+         else // if status == 255 
+         {
+             metaTypeByte = newMidiMessageArray[1];
+         }
          return metaTypeByte;
      }
      
