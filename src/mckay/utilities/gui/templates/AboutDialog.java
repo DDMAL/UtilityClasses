@@ -39,7 +39,7 @@ public class AboutDialog
           
           // Add label to centre
           JLabel label = new JLabel( "<HTML><CENTER><H1><I>" + title +
-               "</I></H1><HR><p>© " + owner + " " + year + "<br>" +
+               "</I></H1><HR><p><A9> " + owner + " " + year + "<br>" +
                institution + "</CENTER></HTML>" );
           JPanel label_panel = new JPanel();
           label_panel.setBorder(BorderFactory.createEmptyBorder(1, 7, 1, 7));
