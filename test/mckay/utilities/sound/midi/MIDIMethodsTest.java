@@ -72,7 +72,7 @@ public class MIDIMethodsTest {
                                                                 start_ticks,
                                                                 end_ticks);
         assertEquals(4, windows.length);
-        
+
         window_duration = 1.0;
         window_overlap_offset = 0;
         startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequence, 
@@ -82,15 +82,15 @@ public class MIDIMethodsTest {
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
         Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, 1, 0,start_ticks,end_ticks);
-        for (int s = 0; s < windowed_sequences.length; s++) 
+        for (int s = 0; s < windowed_sequences.length; s++)
         {
             Sequence actualSequence = windowed_sequences[s];
             Sequence expectedSequence = test_sequence[s];
-            for (int t = 0; t < actualSequence.getTracks().length; t++) 
+            for (int t = 0; t < actualSequence.getTracks().length; t++)
             {
                 Track actualTrack = actualSequence.getTracks()[t];
                 Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < actualTrack.size(); event++) 
+                for (int event = 0; event < actualTrack.size(); event++)
                 {
                     MidiEvent actualEvent = actualTrack.get(event);
                     MidiEvent expectedEvent = expectedTrack.get(event);
@@ -101,7 +101,7 @@ public class MIDIMethodsTest {
                 }
             }
         }
-        for (int s = 0; s < test_sequence.length; s++) 
+        for (int s = 0; s < test_sequence.length; s++)
         {
             Sequence actualSequence = windowed_sequences[s];
             Sequence expectedSequence = test_sequence[s];
@@ -120,7 +120,7 @@ public class MIDIMethodsTest {
                 }
             }
         }
-        
+
         //TEST KEY SIGNATURE
         Sequence sequenceKeysig = new Sequence(Sequence.PPQ, 256);
         Track trackKeysig = sequenceKeysig.createTrack();
@@ -261,7 +261,7 @@ public class MIDIMethodsTest {
                 }
             }
         }
-        
+
         //Short file to test windows
         //PUT INTO A JUNIT TEST FILE
         File tempDir = tempFolder.newFolder("MozartQuintettWindows");
@@ -280,7 +280,11 @@ public class MIDIMethodsTest {
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
         Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence, 10, 0,start_ticks,end_ticks);
-        
+        int testcount = 1;
+        for(Sequence s : mozart_sequence_windows) {
+            MidiSystem.write(s,1,new File("mozarttest" + testcount + ".midi"));
+            testcount++;
+        }
         int sequence_num = 0;
         for(Sequence mozart_sequence : mozart_sequence_windows)
         {   

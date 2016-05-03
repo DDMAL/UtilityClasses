@@ -372,7 +372,7 @@ public class MIDIMethods
           int[] window_end_ticks = new int[window_end_ticks_I.length];
           for (int i = 0; i < window_end_ticks.length; i++)
                window_end_ticks[i] = window_end_ticks_I[i].intValue();
-          
+
           List<int[]> startEndTickList = new ArrayList<>();
           startEndTickList.add(window_start_ticks);
           startEndTickList.add(window_end_ticks);
@@ -439,9 +439,10 @@ public class MIDIMethods
             }
             int current_sequence_start_tick = window_start_ticks[loop_index];
             int normalized_tick = startTick - current_sequence_start_tick;
-            if(normalized_tick >= 0 && 
+            if((normalized_tick >= 0 &&
                startTick >= window_start_ticks[loop_index] && 
-               startTick <= window_end_ticks[loop_index]) 
+               startTick <= window_end_ticks[loop_index]) ||
+               startTick == window_end_ticks[window_end_ticks.length - 1] + 1); //off by one here to account for last window end tick
             {
                 Track thisTrack = windowed_tracks[loop_index][track_index];
                 MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
@@ -491,7 +492,7 @@ public class MIDIMethods
          
          //COULD ALSO DO THIS BASED OF MIDIMETASTATUSHASH
          //If special status byte then add to special message list
-         if(statusByteIsSpecial(thisMessage)) 
+         if(statusByteIsSpecial(thisMessage))
          {
              Byte midiStatusHash = getMidiMetaStatusHash(thisEvent);
              thisTrackSpecialEvents.put(midiStatusHash, thisEvent);
