@@ -41,19 +41,19 @@ public class MIDIMethodsTest {
         //TEST PROGRAM CHANGE
         Sequence sequence = new Sequence(Sequence.PPQ, 256);
         Track testTrack = sequence.createTrack();
-        testTrack.add(MidiBuildMessage.createProgramChange(19, 0, 0));
+        testTrack.add(MidiBuildMessage.createProgramChange(24, 0, 0));
         testTrack.add(MidiBuildMessage.createNoteOnEvent(35, 0, 0));
         testTrack.add(MidiBuildMessage.createNoteOffEvent(35, 1024, 0));
         
         Sequence[] test_sequence = new Sequence[2];
         test_sequence[0] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_0 = test_sequence[0].createTrack();
-        test_sequence_0.add(MidiBuildMessage.createProgramChange(19, 0, 0));
+        test_sequence_0.add(MidiBuildMessage.createProgramChange(24, 0, 0));
         test_sequence_0.add(MidiBuildMessage.createNoteOnEvent(35, 0, 0));
         
         test_sequence[1] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_1 = test_sequence[1].createTrack();
-        test_sequence_1.add(MidiBuildMessage.createProgramChange(19, 0, 0));
+        test_sequence_1.add(MidiBuildMessage.createProgramChange(24, 0, 0));
         test_sequence_1.add(MidiBuildMessage.createNoteOffEvent(35, 512, 0));
         
         //512 ticks per second with 0.5 second windows makes 4 windows in 1024 ticks
@@ -82,44 +82,8 @@ public class MIDIMethodsTest {
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
         Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, 1, 0,start_ticks,end_ticks);
-        for (int s = 0; s < windowed_sequences.length; s++)
-        {
-            Sequence actualSequence = windowed_sequences[s];
-            Sequence expectedSequence = test_sequence[s];
-            for (int t = 0; t < actualSequence.getTracks().length; t++)
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < actualTrack.size(); event++)
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
-        for (int s = 0; s < test_sequence.length; s++)
-        {
-            Sequence actualSequence = windowed_sequences[s];
-            Sequence expectedSequence = test_sequence[s];
-            for (int t = 0; t < expectedSequence.getTracks().length; t++) 
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < expectedTrack.size(); event++) 
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
+        compareEventByteArrayTest(windowed_sequences,test_sequence);
+        compareEventByteArrayTest(test_sequence,windowed_sequences);
 
         //TEST KEY SIGNATURE
         Sequence sequenceKeysig = new Sequence(Sequence.PPQ, 256);
@@ -149,44 +113,8 @@ public class MIDIMethodsTest {
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
         Sequence[] windowed_sequences_key = MIDIMethods.breakSequenceIntoWindows(sequenceKeysig, 1, 0,start_ticks,end_ticks);
-        for (int s = 0; s < windowed_sequences_key.length; s++) 
-        {
-            Sequence actualSequence = windowed_sequences_key[s];
-            Sequence expectedSequence = test_sequence_key[s];
-            for (int t = 0; t < actualSequence.getTracks().length; t++) 
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < actualTrack.size(); event++) 
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
-        for (int s = 0; s < test_sequence_key.length; s++) 
-        {
-            Sequence actualSequence = windowed_sequences_key[s];
-            Sequence expectedSequence = test_sequence_key[s];
-            for (int t = 0; t < expectedSequence.getTracks().length; t++) 
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < expectedTrack.size(); event++) 
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
+        compareEventByteArrayTest(windowed_sequences_key,test_sequence_key);
+        compareEventByteArrayTest(test_sequence_key,windowed_sequences_key);
         
         //TEST TEMPO
         Sequence sequenceTempo = new Sequence(Sequence.PPQ, 256);
@@ -222,56 +150,21 @@ public class MIDIMethodsTest {
         end_ticks = startEndTickArrays.get(1);
         Sequence[] windowed_sequence_tempo = MIDIMethods.breakSequenceIntoWindows(sequenceTempo, 1, 0,start_ticks,end_ticks);
         assertEquals(3, windowed_sequence_tempo.length);
-        
-        for (int s = 0; s < windowed_sequence_tempo.length; s++) 
-        {
-            Sequence actualSequence = windowed_sequence_tempo[s];
-            Sequence expectedSequence = test_sequence_tempo[s];
-            for (int t = 0; t < actualSequence.getTracks().length; t++) 
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < actualTrack.size(); event++) 
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
-        for (int s = 0; s < test_sequence_tempo.length; s++) 
-        {
-            Sequence actualSequence = windowed_sequence_tempo[s];
-            Sequence expectedSequence = test_sequence_tempo[s];
-            for (int t = 0; t < expectedSequence.getTracks().length; t++) 
-            {
-                Track actualTrack = actualSequence.getTracks()[t];
-                Track expectedTrack = expectedSequence.getTracks()[t];
-                for (int event = 0; event < expectedTrack.size(); event++) 
-                {
-                    MidiEvent actualEvent = actualTrack.get(event);
-                    MidiEvent expectedEvent = expectedTrack.get(event);
-                    byte[] actualArray = actualEvent.getMessage().getMessage();
-                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
-                    assertArrayEquals(expectedArray, actualArray);
-                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
-                }
-            }
-        }
+
+        compareEventByteArrayTest(windowed_sequence_tempo,test_sequence_tempo);
+        compareEventByteArrayTest(test_sequence_tempo,windowed_sequence_tempo);
 
         //Short file to test windows
         //PUT INTO A JUNIT TEST FILE
+        window_duration = 10.0;
+        window_overlap_offset = 0;
         File tempDir = tempFolder.newFolder("MozartQuintettWindows");
         String tempDirName = tempDir.getPath();
         File mozartFile = new File("./test/mckay/utilities/sound/midi/"
                                 + "midi-test-resources/Mozart_Quintett.midi");
         Sequence mozartSequence = MidiSystem.getSequence(mozartFile);
         
-        window_duration = 10.0;
-        window_overlap_offset = 0;
+
         seconds_per_tick = MIDIMethods.getSecondsPerTick(mozartSequence);
         startEndTickArrays = MIDIMethods.getStartEndTickArrays(mozartSequence, 
                                                                window_duration, 
@@ -279,12 +172,9 @@ public class MIDIMethodsTest {
                                                                seconds_per_tick);
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
-        Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence, 10, 0,start_ticks,end_ticks);
-        int testcount = 1;
-        for(Sequence s : mozart_sequence_windows) {
-            MidiSystem.write(s,1,new File("mozarttest" + testcount + ".midi"));
-            testcount++;
-        }
+        Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence,
+                window_duration, window_overlap_offset,start_ticks,end_ticks);
+
         int sequence_num = 0;
         for(Sequence mozart_sequence : mozart_sequence_windows)
         {   
@@ -296,6 +186,51 @@ public class MIDIMethodsTest {
         
         File[] mozartSequenceWindows = tempDir.listFiles();
         assertEquals(4, mozartSequenceWindows.length);
+
+
+        //Saint-Saens window tests
+        window_duration = 10.0;
+        window_overlap_offset = 0;
+        File saintsaensFile = new File("/home/dinamix/MeiTest/Saint-Saens_LeCarnevalDesAnimmaux.midi");
+        Sequence saintsaensSequence = MidiSystem.getSequence(saintsaensFile);
+        double[] saintsaens_seconds_per_tick = MIDIMethods.getSecondsPerTick(saintsaensSequence);
+        List<int[]> saintsaensStartEndTickArrays = MIDIMethods.getStartEndTickArrays(saintsaensSequence,
+                window_duration,
+                window_overlap_offset,
+                saintsaens_seconds_per_tick);
+        int[] saintsaens_start_ticks = saintsaensStartEndTickArrays.get(0);
+        int[] saintsaens_end_ticks = saintsaensStartEndTickArrays.get(1);
+        Sequence[] saintsaensWindows = MIDIMethods.breakSequenceIntoWindows(saintsaensSequence,
+                window_duration, window_overlap_offset, saintsaens_start_ticks, saintsaens_end_ticks);
+
+        //To save windowed midi files
+        /*int testcount = 1;
+        for(Sequence s : saintsaensWindows) {
+            MidiSystem.write(s,1,new File("saintsaenstest" + testcount + ".midi"));
+            testcount++;
+        }*/
+        assertEquals(14, saintsaensWindows.length);
     }
-    
+
+    private void compareEventByteArrayTest(Sequence[] actualSequences, Sequence[] expectedSequences) {
+        for (int s = 0; s < actualSequences.length; s++)
+        {
+            Sequence actualSequence = actualSequences[s];
+            Sequence expectedSequence = expectedSequences[s];
+            for (int t = 0; t < actualSequence.getTracks().length; t++)
+            {
+                Track actualTrack = actualSequence.getTracks()[t];
+                Track expectedTrack = expectedSequence.getTracks()[t];
+                for (int event = 0; event < actualTrack.size(); event++)
+                {
+                    MidiEvent actualEvent = actualTrack.get(event);
+                    MidiEvent expectedEvent = expectedTrack.get(event);
+                    byte[] actualArray = actualEvent.getMessage().getMessage();
+                    byte[] expectedArray = expectedEvent.getMessage().getMessage();
+                    assertArrayEquals(expectedArray, actualArray);
+                    assertEquals(expectedEvent.getTick(), actualEvent.getTick());
+                }
+            }
+        }
+    }
 }
