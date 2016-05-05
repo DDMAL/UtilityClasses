@@ -11,6 +11,8 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+
+import org.ddmal.jmei2midi.MeiSequence;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Rule;
@@ -191,8 +193,8 @@ public class MIDIMethodsTest {
         //Saint-Saens window tests
         window_duration = 10.0;
         window_overlap_offset = 0;
-        File saintsaensFile = new File("/home/dinamix/MeiTest/Saint-Saens_LeCarnevalDesAnimmaux.midi");
-        Sequence saintsaensSequence = MidiSystem.getSequence(saintsaensFile);
+        MeiSequence ms = new MeiSequence("/workspace/ddmal/jMei2Midi/mei-test/CompleteExamples/Saint-Saens_LeCarnevalDesAnimmaux.mei");
+        Sequence saintsaensSequence = ms.getSequence();
         double[] saintsaens_seconds_per_tick = MIDIMethods.getSecondsPerTick(saintsaensSequence);
         List<int[]> saintsaensStartEndTickArrays = MIDIMethods.getStartEndTickArrays(saintsaensSequence,
                 window_duration,

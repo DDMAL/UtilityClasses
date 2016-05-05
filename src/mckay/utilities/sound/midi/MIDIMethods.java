@@ -541,7 +541,8 @@ public class MIDIMethods
          int status = message.getStatus();
          Byte metaTypeByte;
          //program change
-         if(status == 192) {
+         //NEED TO CHANGE HERE AND IN statusByteIsSpecial(MidiMessage)
+         if(status == 192 || status == 193) {
             metaTypeByte = newMidiMessageArray[0];
          }
          //meta-message
@@ -572,9 +573,11 @@ public class MIDIMethods
       */
      private static boolean statusByteIsSpecial(MidiMessage message) {
          int status = message.getStatus();
+         //NEED TO CHANGE HERE AND IN getMidiMetaStatusHash(MidiEvent)
          switch (status) {
              case 255 : return true; //meta message
              case 192 : return true; //program change
+             case 193 : return true; //apparently other program change
              default : return false;
          }
      }
