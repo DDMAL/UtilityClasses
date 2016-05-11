@@ -295,7 +295,7 @@ public class MIDIMethods
                           specialEventsGivenToLastWindow);
                   }
                   
-                  //Normalize event to speicfied sequence and add to track
+                  //Normalize event to specified sequence and add to track
                   //Then add this event to all appropriate windowed sequences
                   passEventToAllAppropriateWindows(thisEvent, 
                                                    sequence_index, 
@@ -432,8 +432,9 @@ public class MIDIMethods
                                                          Track[][] windowed_tracks,
                                                          Sequence[] windowed_sequences) 
      {
-         for(int loop_index = sequence_index; loop_index < windowed_sequences.length; loop_index++) 
+         for(int loop_index = sequence_index; loop_index < windowed_sequences.length; loop_index++)
          {
+             //optimization here, so usually only 1 iteration performed
             if(startTick < window_start_ticks[loop_index]) {
                 break;
             }
@@ -542,12 +543,13 @@ public class MIDIMethods
          Byte metaTypeByte;
          //program change
          //NEED TO CHANGE HERE AND IN statusByteIsSpecial(MidiMessage)
-         if(status == 192 || status == 193) {
+         if(status >= 192 && status <= 207) {
+             //Program change contains status byte 1100 XXXX
+             //Where XXXX ranges between 16 bits i.e. 11000000 to 11001111 (= 192 to 207)
             metaTypeByte = newMidiMessageArray[0];
          }
-         //meta-message
-         else // if status == 255 
-         {
+         else /* if status == 255 */{
+             //meta-message
              metaTypeByte = newMidiMessageArray[1];
          }
          return metaTypeByte;
@@ -569,16 +571,17 @@ public class MIDIMethods
       * Switch statement for all special midi message status bytes.
       * Use status byte to work for meta messages we may not know about.
       * @param message the midi message to be checked
-      * @return true for 255 (meta-message) or 192 (program change), else false
+      * @return true for 255 (meta-message) or 192-207 (program change), else false
       */
      private static boolean statusByteIsSpecial(MidiMessage message) {
          int status = message.getStatus();
          //NEED TO CHANGE HERE AND IN getMidiMetaStatusHash(MidiEvent)
-         switch (status) {
-             case 255 : return true; //meta message
-             case 192 : return true; //program change
-             case 193 : return true; //apparently other program change
-             default : return false;
+         if(status == 255) {
+             return true;
+         } else if(status >= 192 && status <= 207) {
+             return true;
+         } else {
+             return false;
          }
      }
      

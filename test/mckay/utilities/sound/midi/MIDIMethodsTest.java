@@ -163,26 +163,26 @@ public class MIDIMethodsTest {
         File tempDir = tempFolder.newFolder("MozartQuintettWindows");
         String tempDirName = tempDir.getPath();
         File mozartFile = new File("./test/mckay/utilities/sound/midi/"
-                                + "midi-test-resources/Mozart_Quintett.midi");
-        Sequence mozartSequence = MidiSystem.getSequence(mozartFile);
-        
-
-        seconds_per_tick = MIDIMethods.getSecondsPerTick(mozartSequence);
-        startEndTickArrays = MIDIMethods.getStartEndTickArrays(mozartSequence, 
-                                                               window_duration, 
-                                                               window_overlap_offset,
-                                                               seconds_per_tick);
-        start_ticks = startEndTickArrays.get(0);
-        end_ticks = startEndTickArrays.get(1);
+                                + "midi-test-resources/Mozart_Quintett.mei");
+        MeiSequence mozs = new MeiSequence(mozartFile);
+        Sequence mozartSequence = mozs.getSequence();
+        double[] mozart_seconds_per_tick = MIDIMethods.getSecondsPerTick(mozartSequence);
+        List<int[]> mozartStartEndTickArrays = MIDIMethods.getStartEndTickArrays(mozartSequence,
+                window_duration,
+                window_overlap_offset,
+                mozart_seconds_per_tick);
+        int[] mozart_start_ticks = mozartStartEndTickArrays.get(0);
+        int[] mozart_end_ticks = mozartStartEndTickArrays.get(1);
         Sequence[] mozart_sequence_windows = MIDIMethods.breakSequenceIntoWindows(mozartSequence,
-                window_duration, window_overlap_offset,start_ticks,end_ticks);
-
+                window_duration, window_overlap_offset,mozart_start_ticks,mozart_end_ticks);
         int sequence_num = 0;
         for(Sequence mozart_sequence : mozart_sequence_windows)
         {   
             File tempFile = new File(tempDirName + File.separator
                                 + "mozart_sequence_" + sequence_num + ".midi");
             MidiSystem.write(mozart_sequence, 1, tempFile);
+            //To output the midi file for manual checks
+            MidiSystem.write(mozart_sequence,1,new File("mozarttest" + sequence_num + ".midi"));
             sequence_num++;
         }
         
@@ -193,7 +193,8 @@ public class MIDIMethodsTest {
         //Saint-Saens window tests
         window_duration = 10.0;
         window_overlap_offset = 0;
-        MeiSequence ms = new MeiSequence("/workspace/ddmal/jMei2Midi/mei-test/CompleteExamples/Saint-Saens_LeCarnevalDesAnimmaux.mei");
+        MeiSequence ms = new MeiSequence("./test/mckay/utilities/sound/midi/" +
+                "midi-test-resources/Saint-Saens_LeCarnevalDesAnimmaux.mei");
         Sequence saintsaensSequence = ms.getSequence();
         double[] saintsaens_seconds_per_tick = MIDIMethods.getSecondsPerTick(saintsaensSequence);
         List<int[]> saintsaensStartEndTickArrays = MIDIMethods.getStartEndTickArrays(saintsaensSequence,
@@ -206,11 +207,11 @@ public class MIDIMethodsTest {
                 window_duration, window_overlap_offset, saintsaens_start_ticks, saintsaens_end_ticks);
 
         //To save windowed midi files
-        /*int testcount = 1;
+        int testcount = 1;
         for(Sequence s : saintsaensWindows) {
             MidiSystem.write(s,1,new File("saintsaenstest" + testcount + ".midi"));
             testcount++;
-        }*/
+        }
         assertEquals(14, saintsaensWindows.length);
     }
 
