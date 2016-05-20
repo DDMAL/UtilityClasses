@@ -1,8 +1,7 @@
 /*
  * MIDIMethods.java
- * Version 3.2
  *
- * Last modified on October 29, 2013.
+ * Last modified on May 19, 2016.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * A holder class for static methods relating to MIDI.
  *
- * @author Cory McKay
+ * @author Cory McKay and Tristano Tenaglia
  */
 public class MIDIMethods
 {
@@ -295,7 +294,7 @@ public class MIDIMethods
                           specialEventsGivenToLastWindow);
                   }
                   
-                  //Normalize event to speicfied sequence and add to track
+                  //Normalize event to specified sequence and add to track
                   //Then add this event to all appropriate windowed sequences
                   passEventToAllAppropriateWindows(thisEvent, 
                                                    sequence_index, 
@@ -372,7 +371,7 @@ public class MIDIMethods
           int[] window_end_ticks = new int[window_end_ticks_I.length];
           for (int i = 0; i < window_end_ticks.length; i++)
                window_end_ticks[i] = window_end_ticks_I[i].intValue();
-          
+
           List<int[]> startEndTickList = new ArrayList<>();
           startEndTickList.add(window_start_ticks);
           startEndTickList.add(window_end_ticks);
@@ -432,16 +431,18 @@ public class MIDIMethods
                                                          Track[][] windowed_tracks,
                                                          Sequence[] windowed_sequences) 
      {
-         for(int loop_index = sequence_index; loop_index < windowed_sequences.length; loop_index++) 
+         for(int loop_index = sequence_index; loop_index < windowed_sequences.length; loop_index++)
          {
+             //optimization here, so usually only 1 iteration performed
             if(startTick < window_start_ticks[loop_index]) {
                 break;
             }
             int current_sequence_start_tick = window_start_ticks[loop_index];
             int normalized_tick = startTick - current_sequence_start_tick;
-            if(normalized_tick >= 0 && 
+            if((normalized_tick >= 0 &&
                startTick >= window_start_ticks[loop_index] && 
-               startTick <= window_end_ticks[loop_index]) 
+               startTick <= window_end_ticks[loop_index]) ||
+               startTick == window_end_ticks[window_end_ticks.length - 1] + 1); //off by one here to account for last window end tick
             {
                 Track thisTrack = windowed_tracks[loop_index][track_index];
                 MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
@@ -491,7 +492,7 @@ public class MIDIMethods
          
          //COULD ALSO DO THIS BASED OF MIDIMETASTATUSHASH
          //If special status byte then add to special message list
-         if(statusByteIsSpecial(thisMessage)) 
+         if(statusByteIsSpecial(thisMessage))
          {
              Byte midiStatusHash = getMidiMetaStatusHash(thisEvent);
              thisTrackSpecialEvents.put(midiStatusHash, thisEvent);
@@ -540,12 +541,14 @@ public class MIDIMethods
          int status = message.getStatus();
          Byte metaTypeByte;
          //program change
-         if(status == 192) {
+         //NEED TO CHANGE HERE AND IN statusByteIsSpecial(MidiMessage)
+         if(status >= 192 && status <= 207) {
+             //Program change contains status byte 1100 XXXX
+             //Where XXXX ranges between 16 bits i.e. 11000000 to 11001111 (= 192 to 207)
             metaTypeByte = newMidiMessageArray[0];
          }
-         //meta-message
-         else // if status == 255 
-         {
+         else /* if status == 255 */{
+             //meta-message
              metaTypeByte = newMidiMessageArray[1];
          }
          return metaTypeByte;
@@ -567,14 +570,17 @@ public class MIDIMethods
       * Switch statement for all special midi message status bytes.
       * Use status byte to work for meta messages we may not know about.
       * @param message the midi message to be checked
-      * @return true for 255 (meta-message) or 192 (program change), else false
+      * @return true for 255 (meta-message) or 192-207 (program change), else false
       */
      private static boolean statusByteIsSpecial(MidiMessage message) {
          int status = message.getStatus();
-         switch (status) {
-             case 255 : return true; //meta message
-             case 192 : return true; //program change
-             default : return false;
+         //NEED TO CHANGE HERE AND IN getMidiMetaStatusHash(MidiEvent)
+         if(status == 255) {
+             return true;
+         } else if(status >= 192 && status <= 207) {
+             return true;
+         } else {
+             return false;
          }
      }
      

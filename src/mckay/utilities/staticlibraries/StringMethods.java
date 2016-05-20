@@ -1,8 +1,7 @@
 /*
  * StringMethods.java
- * Version 3.2
  *
- * Last modified on October 29, 2013.
+ * Last modified on May 19, 2016.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -12,6 +11,8 @@ import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -198,6 +199,33 @@ public class StringMethods
           throw new Exception("Unable to find " + given_name + ".");
      }
      
+	 
+	 /**
+	  * Returns all indexes of to_search which contain a String equaling to_search_for.
+	  * 
+	  * @param to_search_for	The string to search the array for.
+	  * @param to_search		The array to search.
+	  * @return					The indexes of to_search containing a string equaling to_search_for. Null if
+	  *							there are no matches.
+	  */
+	 public static int[] getAllIndexesOfString(String to_search_for, String[] to_search)
+	 {
+		 ArrayList<Integer> indexes = new ArrayList<>();
+		 for (int i = 0; i < to_search.length; i++)
+			 if (to_search_for.equals(to_search[i]))
+				 indexes.add(i);
+		 
+		 if (indexes.isEmpty())
+			 return null;
+		 else
+		 {
+			 int[] indexes_int = new int[indexes.size()];
+			 for (int i = 0; i < indexes_int.length; i++)
+				 indexes_int[i] = indexes.get(i);
+			 return indexes_int;
+ 		 }
+	 }
+	 
      
      /**
       * Return the index of the longest string in the given array. If multiple
@@ -364,6 +392,61 @@ public class StringMethods
          return unique_entries.toArray(new String[1]);
      }
 
+	 
+	 /**
+	  * Find the indexes of all strings that appear multiple times in the given array.
+	  * 
+	  * @param array_to_check	The array to check for identical strings.
+	  * @return					Each row corresponds to a single duplicate, and each column in a row indicates
+	  *							the indexes in the original array_to_check array where this string can be
+	  *							found (including the first noted location). Only duplicates are noted (i.e. 
+	  *							strings that only occur once are not given a row). Null is returned if there
+	  *							are no duplicates.
+	  */
+	 public static int[][] getIndexesOfDuplicateEntries(String[] array_to_check)
+	 {
+		 // A map of all strings to the indexes where they are found
+		 HashMap<String,ArrayList<Integer>> indexes_found = new HashMap<>();
+		 for (int i = 0; i < array_to_check.length; i++)
+		 {
+			 if(indexes_found.containsKey(array_to_check[i]))
+			 {
+				 ArrayList<Integer> existing_array = indexes_found.get(array_to_check[i]);
+				 existing_array.add(new Integer(i));
+			 }
+			 else
+			 {
+				 ArrayList<Integer> new_array = new ArrayList<>();
+				 new_array.add(new Integer(i));
+				 indexes_found.put(array_to_check[i], new_array);
+			 }
+		 }
+		 
+		 // A list of all sets of duplicates
+		 ArrayList<int[]> duplicate_indexes_found = new ArrayList<>();
+		 for (String key : indexes_found.keySet())
+		 {
+			 if (indexes_found.get(key).size() > 1)
+			 {
+				 int[] this_set = new int[indexes_found.get(key).size()];
+				 for (int i = 0; i < this_set.length; i++)
+					 this_set[i] = indexes_found.get(key).get(i);
+				 duplicate_indexes_found.add(this_set);
+			 }
+		 }
+
+		 // Return the results in a properly formatted way
+		 if (duplicate_indexes_found.isEmpty())
+			 return null;
+		 else
+		 {
+			int[][] results = new int[duplicate_indexes_found.size()][];
+			for (int i = 0; i < results.length; i++)
+				results[i] = duplicate_indexes_found.get(i);
+			return results;
+		 }
+	 }
+	 	 
      
      /**
       * Returns the number of times that the given substring occurs in the
@@ -682,7 +765,8 @@ public class StringMethods
      
      
      /**
-      * Returns the name of the directory that the given filename is found in.
+      * Returns the name of the directory that the given filename is found in. Assumes that the
+	  * directory separator character is the current system's separator character.
       * Throws an exception if no valid directory separator is present.
       *
       * @param file_path      The path to extract the directory from.
@@ -697,6 +781,32 @@ public class StringMethods
           if (index_of_last_separator == -1)
                throw new Exception(file_path + " does not contain a valid directory separator.");
           return new String(file_path.substring(0, file_path.lastIndexOf(File.separator)) + File.separator);
+     }
+     
+     
+     /**
+      * Returns the name of the directory that the given filename is found in. Assumes that the
+	  * directory separator character is either a forward slash or (if this is not present) a backward slash.
+	  * Throws an exception if no valid directory separator is present.
+      *
+      * @param file_path      The path to extract the directory from.
+      * @return               The directory name.
+      * @throws Exception     Throws an exception if no valid directory
+      *                       separator is present.
+      */
+     public static String getDirectoryNameGeneral(String file_path)
+     throws Exception
+     {
+		String separator = "/";
+        int index_of_last_separator = file_path.lastIndexOf(separator);
+        if (index_of_last_separator == -1)
+		{
+			separator = "\\";
+			index_of_last_separator = file_path.lastIndexOf(separator);	 
+		}
+		if (index_of_last_separator == -1)
+			throw new Exception(file_path + " does not contain a valid directory separator.");
+		return new String(file_path.substring(0, file_path.lastIndexOf(separator)) + separator);
      }
      
      
@@ -877,7 +987,7 @@ public class StringMethods
       */
      public static String getDoubleInScientificNotation(double number_to_round,
           int significant_digits)
-     {
+     { 
           if (Double.isNaN(number_to_round))
                return new String("NaN");
           if (number_to_round == Double.NEGATIVE_INFINITY)
