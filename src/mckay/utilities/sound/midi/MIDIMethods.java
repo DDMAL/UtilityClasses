@@ -1,8 +1,7 @@
 /*
  * MIDIMethods.java
- * Version 3.2
  *
- * Last modified on October 29, 2013.
+ * Last modified on May 19, 2016.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * A holder class for static methods relating to MIDI.
  *
- * @author Cory McKay
+ * @author Cory McKay and Tristano Tenaglia
  */
 public class MIDIMethods
 {

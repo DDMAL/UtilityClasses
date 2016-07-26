@@ -2,14 +2,14 @@
  * FileMethods.java
  * Version 3.2
  *
- * Last modified on October 29, 2013.
+ * Last modified on March 1, 2016.
  * Marianopolis College, McGill University and University of Waikato
  */
 
 package mckay.utilities.staticlibraries;
 
 import java.io.*;
-import java.lang.StringBuilder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.JOptionPane;
@@ -112,7 +112,7 @@ public class FileMethods
 
 
      /**
-      * Prepares a DataOutputStream that can be used to write a file. The useer
+      * Prepares a DataOutputStream that can be used to write a file. The user
       * must remember to close this DataOutputStream after writing is complete.
       *
       * @param      file                     The File that will be written to.
@@ -158,6 +158,40 @@ public class FileMethods
                throw new Exception("Cannot read from file " + file.getPath() + ".");
           if (need_write && !file.canWrite())
                throw new Exception("File " + file.getPath() + " cannot be written to.");
+
+          return true;
+     }
+
+
+     /**
+      * Tests the given File to see if it is a valid directory.
+      *
+      * @param file           The file to test.
+      * @param need_read      If this is set to true, then an exception is
+      *                       sent if the directory cannot be read from.
+      * @param need_write     If this is set to true, then an exception is
+      *                       sent if the directory cannot be written to.
+      * @return               Value of true if no problems occured during
+      *                       file validation.
+      * @throws Exception     An informative exception is thrown if there is
+      *                       a problem with the file.
+      */
+     public static boolean validateDirectory(File file, boolean need_read,
+          boolean need_write)
+          throws Exception
+     {
+          if (file == null)
+               throw new Exception("Empty directory reference provided.");
+          if (!file.exists())
+               throw new Exception("Directory " + file.getPath() + " does not exist.");
+          if (file.isFile())
+               throw new Exception("Reference to a file instead of a directory: " + file.getPath() + ".");
+          if (!file.isDirectory())
+               throw new Exception("Reference to " + file.getPath() + "is not a valid directory.");
+          if (need_read && !file.canRead())
+               throw new Exception("Cannot read from directory " + file.getPath() + ".");
+          if (need_write && !file.canWrite())
+               throw new Exception("Directory " + file.getPath() + " cannot be written to.");
 
           return true;
      }
@@ -257,8 +291,83 @@ public class FileMethods
 			   else results.add(in_this_directory[i]);
           }
      }
+	 
+	 
+	 /**
+	  * Return a report indicating which files are present in first_root_directory but not in 
+	  * second_root_directory. This search includes sub-directories of both root directories if
+	  * explore_subdirectories is set to true; in this case, files must be in the same sub-directory structure
+	  * to be considered matching. There is the option to remove some number of characters from the ends of
+	  * file names for the purpose of the comparison, if desired.
+	  * 
+	  * @param first_root_directory				The directory to look for files that should be present in the
+	  *											second directory.
+	  * @param second_root_directory			The directory to check to see if files are present from the
+	  *											first directory.
+	  * @param explore_subdirectories			Whether or not to include sub-directories from both root
+	  *											directories in the comparison.
+	  * @param first_num_characters_at_ends		The number of characters to discount at the ends of filenames
+	  *											in first_root_directory, including the extension.
+	  * @param second_num_characters_at_ends	The number of characters to discount at the ends of filenames
+	  *											in second_root_directory, including the extension.
+	  * @return									A report enumerating the files in first_root_directory that
+	  *											could not be found in second_root_directory.
+	  */
+	 public static String verifyMatchingFilesExist( String first_root_directory,
+			                                        String second_root_directory,
+												    boolean explore_subdirectories,
+												    int first_num_characters_at_ends,
+													int second_num_characters_at_ends )
+	 {
+		// A report on all errors encountered (leave as null if none found)
+		String error_report = null;
+		
+		// The files to compare
+		File[] first_files = FileMethods.getAllFilesInDirectory(new File(first_root_directory), explore_subdirectories, null, null);
+		String[] first_files_paths = new String[first_files.length];
+		for (int i = 0; i < first_files.length; i++)
+			first_files_paths[i] = first_files[i].getAbsolutePath();
+		File[] second_files = FileMethods.getAllFilesInDirectory(new File(second_root_directory), explore_subdirectories, null, null);
+		String[] second_files_paths = new String[second_files.length];
+		for (int i = 0; i < second_files.length; i++)
+			second_files_paths[i] = second_files[i].getAbsolutePath();
+		
+		// Strip array the root directories
+		int chars_to_strip = (new File(first_root_directory)).getAbsolutePath().length();
+		for (int i = 0; i < first_files_paths.length; i++)
+			first_files_paths[i] = first_files_paths[i].substring(chars_to_strip);
+		chars_to_strip = (new File(second_root_directory)).getAbsolutePath().length();
+		for (int i = 0; i < second_files_paths.length; i++)
+			second_files_paths[i] = second_files_paths[i].substring(chars_to_strip);
+		
+		// Strip array end characters
+		if (first_num_characters_at_ends > 1)
+			for (int i = 0; i < first_files_paths.length; i++)
+				first_files_paths[i] = first_files_paths[i].substring(0, first_files_paths[i].length() - first_num_characters_at_ends);
+		if (second_num_characters_at_ends > 1)
+			for (int i = 0; i < second_files_paths.length; i++)
+				second_files_paths[i] = second_files_paths[i].substring(0, second_files_paths[i].length() - second_num_characters_at_ends);
 
-
+		// Find all files from first_root_directory that are not in second_root_directory
+		ArrayList<String> not_there = new ArrayList<>();
+		for (int i = 0; i < first_files_paths.length; i++)
+		{
+			boolean found = StringMethods.isStringInArray(first_files_paths[i], second_files_paths);
+			if (!found)
+				not_there.add(first_files[i].getAbsolutePath());
+		}
+		if (!not_there.isEmpty())
+		{
+			error_report = not_there.size() + " FILES ARE IN " + first_root_directory + " BUT NOT " + second_root_directory + ":\n";
+			for (int i = 0; i < not_there.size(); i++)
+				error_report += not_there.get(i) + "\n";
+		}		
+		
+		// Return the results
+		return error_report;		 
+	 }
+	 
+	 
 	 /**
  	  * Creates a directory if it does not already exist at the given path. If a
 	  * non-directory file exists at the given path, then delete it. If a directory
@@ -286,7 +395,7 @@ public class FileMethods
 		 }
 		 
 		 // Create a directory at the given path
-		 return directory.mkdir();
+		 return directory.mkdirs();
 	 }
 	 
 	 
@@ -314,7 +423,7 @@ public class FileMethods
                     return false;
           }
 
-          return directory.mkdir();
+          return directory.mkdirs();
      }
 
 
@@ -376,6 +485,93 @@ public class FileMethods
           out.close();
      }
 
+	 
+	/**
+	 * Copy all of the files in the input_parent_directory (and its subdirectories, if the 
+	 * explore_subdirectories argument is set to true) to the output_parent_directory root folder. Both
+	 * output_parent_directory and any necessary sub-directories are created if they are not already present.
+	 * The newly copied files are given new names, consisting of the specified new_base_name followed by a 
+	 * six-digit integer indicating the order in which the file was copied. The original file extension is 
+	 * kept. Finally, a mapping text file is saved, where each line corresponds to a file that was copied,
+	 * and where each line consists of first the original file path, followed by the specified 
+	 * mappings_separator, followed by the destination file path.
+	 * 
+	 * @param input_parent_directory	The root folder to look for files to copy.
+	 * @param output_parent_directory	The root folder to copy files to (and create sub-directories in, if
+	 *									appropriate.
+	 * @param new_base_name				The base file name to use for all saved copies.
+	 * @param explore_subdirectories	Whether or not to include the sub-directories of 
+	 *									input_parent_directory in processing.
+	 * @param mappings_file_save_path	Where to save the generated mappings file. No file is saved if this is
+	 *									null.
+	 * @param mappings_separator		The delimiter to use in the generated mappings file, separating source
+	 *									and destination files.
+	 * @throws Exception				Throws an informative exception if a problem occurs.
+	 */
+	public static void copyAndRenameFiles( String input_parent_directory,
+	                                       String output_parent_directory,
+                                           String new_base_name,
+									       boolean explore_subdirectories,
+										   String mappings_file_save_path,
+										   String mappings_separator )
+			throws Exception
+	{
+		// The files to copy
+		File[] files_to_copy = FileMethods.getAllFilesInDirectory(new File(input_parent_directory), explore_subdirectories, null, null);
+		
+		// The paths to copy the files to
+		String[] paths_to_copy_to = new String[files_to_copy.length];
+		
+		// Update the paths_to_copy_to so that they reflect the new path, and using the current file system's
+		// format. Orignal file names are still kept for now, however.
+		String formatted_output_parent_directory = (new File(output_parent_directory)).getAbsolutePath() + File.separator;
+		for (int i = 0; i < paths_to_copy_to.length; i++)
+		{
+			paths_to_copy_to[i] = files_to_copy[i].getAbsolutePath().substring(input_parent_directory.length());
+			paths_to_copy_to[i] = formatted_output_parent_directory + paths_to_copy_to[i];
+		}
+
+		// Replace the old file names with the new ones, keeping the old extensions.
+		for (int i = 0; i < paths_to_copy_to.length; i++)
+		{
+			String formatted_number = String.format("%06d", (i+1));
+			String extension = StringMethods.getExtension(files_to_copy[i].getAbsolutePath());
+			paths_to_copy_to[i] = (new File(paths_to_copy_to[i])).getParent() + File.separator + new_base_name + formatted_number + extension;
+		}
+		
+		// Copy the files one by one, creating new directories as necessary.
+		for (int i = 0; i < files_to_copy.length; i++)
+		{
+			// Note progress
+			System.out.println("COPYING " + (i+1) + " OF " + (files_to_copy.length+1) + ": " + files_to_copy[i].getAbsolutePath());
+
+			// Create the destination directory for the file (if it does not already exist).
+			FileMethods.createDirectory((new File(paths_to_copy_to[i])).getParent());
+
+			// Copy the file
+			try { Files.copy( files_to_copy[i].toPath(), (new File(paths_to_copy_to[i])).toPath() ); }
+			catch (Exception e) {throw new Exception("Could not copy file " + files_to_copy[i].getAbsolutePath() + " to " + paths_to_copy_to[i] );}
+		}
+		
+		// Save the mappings file
+		if (mappings_file_save_path != null)
+		{
+			// Save the new combined feature values Weka-compatible CSV file
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(mappings_file_save_path)))
+			{
+				for (int i = 0; i < files_to_copy.length; i++)
+				{
+					writer.write(files_to_copy[i].getAbsolutePath());
+					writer.write(mappings_separator);
+					writer.write(paths_to_copy_to[i]);
+					writer.newLine();
+				}
+				writer.close();
+			}
+			catch (Exception e)	{ throw new Exception("Error when trying to save mappings file to \"" + mappings_file_save_path + "\": " + e.getMessage()); }
+		}
+	}	
+		
 
 	 /**
 	  * Parses the specified text file into a String. New line characters are
@@ -420,7 +616,44 @@ public class FileMethods
       * is returned with one entry for each item in the list (i.e. each line).
       * This array is not sorted or otherwise processed, but no entries may be
       * null. A descriptive exception is thrown if a problem occurs during
-      * paring.
+      * paring. Parses special characters.
+      *
+      * @param      to_parse  The file to parse.
+      * @return               The parsed contents of the file.
+      * @throws     Exception An informative description of any problem that
+      *                       occurs during parsing.
+      */
+     public static String[] parseTextFileLinesWithSpecialCharacters(File to_parse)
+     throws Exception
+     {
+          // Ensure that the file can be read
+          validateFile(to_parse, true, false);
+
+          // Prepare file reader
+          InputStreamReader reader = new InputStreamReader(new FileInputStream(to_parse),"ISO-8859-1");
+
+          // Prepare the file parser
+          BufferedReader parser = new BufferedReader(reader);
+
+          // Read lines one by one
+          Vector<String> parsed_lines = new Vector<String>();
+          String this_line = "";
+          while ((this_line = parser.readLine()) != null)
+               parsed_lines.add(this_line);
+
+          // Return the parsed results
+          return parsed_lines.toArray(new String[1]);
+     }
+	 
+	 
+	 /**
+      * Parses the given text file. The parsed file is considered to comprise a
+      * list. Each line is counted as a separate item in the list. Blank lines
+      * are treated as an item in the list consisting of "". An array of strings
+      * is returned with one entry for each item in the list (i.e. each line).
+      * This array is not sorted or otherwise processed, but no entries may be
+      * null. A descriptive exception is thrown if a problem occurs during
+      * paring. WARNING: Does not parse special characters properly.
       *
       * @param      to_parse  The file to parse.
       * @return               The parsed contents of the file.
@@ -448,4 +681,33 @@ public class FileMethods
           // Return the parsed results
           return parsed_lines.toArray(new String[1]);
      }
+	 
+
+	 /**
+      * Parses the given CSV (or similar delimited) text file, with the specified delimiter. Parses special 
+	  * characters correctly.
+	  * 
+	  * @param to_parse		The file to parse.
+	  * @param delimiter	The delimiter separating values on a line (such as a comma, or a comma surrounded
+	  *						by spaces.
+	  * @return				The parsed contents of the file, where the first index indicates line and the
+	  *						second indicates comma-separated entry.
+	  * @throws Exception	An informative description of any problem that occurs during parsing.
+	  */
+	 public static String[][] parseCsvFileWithSpecialCharacters(File to_parse, String delimiter)
+	 throws Exception
+	 {
+		// Break up to_parse into individual lines
+		String[] original_lines = parseTextFileLinesWithSpecialCharacters(to_parse);
+		
+		// To hold parsed file contents
+		String[][] parsed_contents = new String[original_lines.length][];
+		 
+		// Break up each line based on a single comma delimiter
+		for (int i = 0; i < parsed_contents.length; i++)
+			parsed_contents[i] = original_lines[i].split(delimiter);
+			
+		// Return the parsed results
+		return parsed_contents; 
+	 }
 }
