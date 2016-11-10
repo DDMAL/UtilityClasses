@@ -147,4 +147,25 @@ public class ArrayMethods
                results[i] = (String) to_cast[i];
           return results;
      }
+
+
+	/**
+	 * Convenience method for checking to see if all elements in an array are equal to a value.
+	 *
+	 * @param values_to_check	The array of values to be checked.
+	 * @param value				Value that each element of values_to_check will be compared to.
+	 * @return					True if all elements of values_to_check are equal to value, otherwise false.
+	 *							False if values_to_check is null.
+	 */
+	public static boolean doesArrayContainOnlyThisValue(short[] values_to_check, int value)
+	{
+		if (values_to_check == null)
+			return false;
+
+		for (int i = 0; i < values_to_check.length; i++)
+			if (values_to_check[i] != value)
+				return false;
+
+		return true;
+	}
 }
