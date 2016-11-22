@@ -268,7 +268,7 @@ public class MIDIMethods
           {
               Track originalTrack = original_tracks[track_index];
               // key = meta midi byte, value = List of special midi messages
-              HashMap<Byte,MidiEvent> thisTrackSpecialEvents = new HashMap<>(); //hashmap for each track
+              MIDISpecialEvents specialEvents = new MIDISpecialEvents();
               boolean specialEventsGivenToLastWindow = false;
               for(int event_index = 0; event_index < originalTrack.size(); event_index++) 
               {
@@ -279,11 +279,11 @@ public class MIDIMethods
                   Track thisTrack = windowed_tracks[sequence_index][track_index];
                   
                   //Check for special events and if we need to copy to sequence
-                  checkForSpecialMidiEvent(thisEvent, thisTrackSpecialEvents);
+                  checkForSpecialMidiEvent(thisEvent, specialEvents);
                   current_sequence_index = checkForNewSequence(current_sequence_index, 
                                                                        sequence_index, 
                                                                             thisTrack, 
-                                                              thisTrackSpecialEvents);
+                                                                        specialEvents);
                   
                   //Check for special events in last overlapped window
                   if(window_overlap_offset != 0) {
@@ -291,7 +291,7 @@ public class MIDIMethods
                           track_index,
                           windowed_sequences, 
                           windowed_tracks, 
-                          thisTrackSpecialEvents, 
+                          specialEvents,
                           specialEventsGivenToLastWindow);
                   }
                   
@@ -387,7 +387,7 @@ public class MIDIMethods
       * @param track_index current track index to be added to
       * @param windowed_sequences all window sequences
       * @param windowed_tracks all tracks corresponding to windowed sequences
-      * @param thisTrackSpecialEvents a map of special events in track
+      * @param specialEvents a map of special events in track
       * @param specialEventsGivenToLastWindow whether or not the special events been passed to this window yet
       * @return true if events have been given to last window for the first time,
       *         otherwise return false
@@ -396,14 +396,13 @@ public class MIDIMethods
                                                   int track_index,
                                                   Sequence[] windowed_sequences,
                                                   Track[][] windowed_tracks,
-                                 HashMap<Byte,MidiEvent> thisTrackSpecialEvents,
+                                 MIDISpecialEvents specialEvents,
                                  boolean specialEventsGivenToLastWindow) {
          if(current_sequence_index == windowed_sequences.length - 2 &&
             !specialEventsGivenToLastWindow) {
             Track nextTrack = windowed_tracks[windowed_sequences.length - 1][track_index];
-            replaceAllTicksToThisSequence(thisTrackSpecialEvents);
-            thisTrackSpecialEventsToNextSequence(nextTrack, 
-                                                 thisTrackSpecialEvents);
+            replaceAllTicksToThisSequence(specialEvents);
+            thisTrackSpecialEventsToNextSequence(nextTrack,specialEvents);
             return true;
         }
          return false;
@@ -458,20 +457,19 @@ public class MIDIMethods
       * @param current_sequence_index current index of the sequence in the array
       * @param sequence_index the next indexed sequence
       * @param thisTrack the track which needs to be checked for special events
-      * @param thisTrackSpecialEvents the map of special midi events
+      * @param specialEvents the maps of special midi events
       * @throws Exception 
       */
      private static int checkForNewSequence( int current_sequence_index,
                                              int sequence_index,
                                              Track thisTrack,
-                                 HashMap<Byte,MidiEvent> thisTrackSpecialEvents) 
+                                 MIDISpecialEvents specialEvents)
              throws Exception
      {
          if(current_sequence_index != sequence_index) 
          {
-             replaceAllTicksToThisSequence(thisTrackSpecialEvents);
-             thisTrackSpecialEventsToNextSequence(thisTrack, 
-                                                  thisTrackSpecialEvents);
+             replaceAllTicksToThisSequence(specialEvents);
+             thisTrackSpecialEventsToNextSequence(thisTrack,specialEvents);
              current_sequence_index = sequence_index;
          }  
          if(sequence_index == -1) 
@@ -483,35 +481,59 @@ public class MIDIMethods
      
      /**
       * Check whether you need to add thisEvent to the special events hash or not.
+      * Also check for note ons so that we can keep track of notes that are still on
+      * at the end of a sequence to pass them to next sequence.
       * @param thisEvent the event to be added to special events list
-      * @param thisTrackSpecialEvents the special events that will be added to
+      * @param specialEvents the special events that will be added to
       */
      private static void checkForSpecialMidiEvent(MidiEvent thisEvent,
-                                 HashMap<Byte,MidiEvent> thisTrackSpecialEvents)
+                                 MIDISpecialEvents specialEvents)
      {
          MidiMessage thisMessage = thisEvent.getMessage();
-         
+         HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
+         HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
          //COULD ALSO DO THIS BASED OF MIDIMETASTATUSHASH
          //If special status byte then add to special message list
          if(statusByteIsSpecial(thisMessage))
          {
              Byte midiStatusHash = getMidiMetaStatusHash(thisEvent);
              thisTrackSpecialEvents.put(midiStatusHash, thisEvent);
-         }        
+         }
+         else if(thisEvent.getMessage() instanceof ShortMessage) {
+             ShortMessage note = (ShortMessage)thisEvent.getMessage();
+             int pitch = note.getData1();
+             if(note.getCommand() == 0x90 && //note on
+                     note.getData2() != 0) { //not 0 velocity
+                 //add note when we find it starts
+                notesToNextSequence.put(pitch,thisEvent);
+             }
+             else if(note.getCommand() == 0x80) { //note off
+                 //remove note when we get note off
+                 notesToNextSequence.remove(pitch);
+             }
+         }
      }
      
      /**
       * Used to replace ticks to current sequence window when changing window
       * and copying over special midi events to new window.
       * Copy at tick 0 because we want to start in a new window sequence.
-      * @param thisTrackSpecialEvents the special events currently in this track
+      * @param specialEvents the special events currently in this track
       */
-     private static void replaceAllTicksToThisSequence(
-                                HashMap<Byte,MidiEvent> thisTrackSpecialEvents) {
+     private static void replaceAllTicksToThisSequence(MIDISpecialEvents specialEvents) {
+         HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
          for(Byte key : thisTrackSpecialEvents.keySet()) {
              MidiEvent originalEvent = thisTrackSpecialEvents.get(key);
              MidiEvent eventCopy = getDeepCopyMidiEventWithNewTick(originalEvent,0);
              thisTrackSpecialEvents.replace(key, eventCopy);
+         }
+
+         //TODO only do this if we do not have overlap offset maybe
+         HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
+         for(Integer pitch : notesToNextSequence.keySet()) {
+             MidiEvent originalEvent = notesToNextSequence.get(pitch);
+             MidiEvent eventCopy = getDeepCopyMidiEventWithNewTick(originalEvent,0);
+             notesToNextSequence.replace(pitch, eventCopy);
          }
      }
      
@@ -558,11 +580,18 @@ public class MIDIMethods
      /**
       * Adds all special messages to new track for a new sequence window.
       * @param track the track to be added to the special events list
-      * @param thisTrackSpecialEvents the special midi events that will be added
+      * @param specialEvents the special midi events that will be added
       */
      private static void thisTrackSpecialEventsToNextSequence(Track track, 
-                               HashMap<Byte,MidiEvent> thisTrackSpecialEvents) {
+                               MIDISpecialEvents specialEvents) {
+         HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
          for(MidiEvent event : thisTrackSpecialEvents.values()) {
+             track.add(event);
+         }
+
+         //maybe only do this if we do not have overlap offset
+         HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
+         for(MidiEvent event : notesToNextSequence.values()) {
              track.add(event);
          }
      }
