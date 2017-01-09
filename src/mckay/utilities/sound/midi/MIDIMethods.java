@@ -278,20 +278,25 @@ public class MIDIMethods
                   Track thisTrack = windowed_tracks[sequence_index][track_index];
                   
                   //Check for special events and if we need to copy to sequence
-                  checkForSpecialMidiEvent(thisEvent, specialEvents);
-                  current_sequence_index = checkForNewSequence(current_sequence_index, 
-                                                                       sequence_index, 
+                  current_sequence_index = checkForNewSequence(current_sequence_index,
+                                                                       sequence_index,
+                                                                          track_index,
                                                                             thisTrack, 
-                                                                        specialEvents);
-                  
+                                                                        specialEvents,
+                                                                      windowed_tracks,
+                                                                    window_end_ticks);
+                  checkForSpecialMidiEvent(thisEvent, specialEvents);
+
                   //Check for special events in last overlapped window
                   if(window_overlap_offset != 0) {
                     specialEventsGivenToLastWindow = checkForLastOverLapWindow(current_sequence_index, 
                           track_index,
+                          sequence_index,
                           windowed_sequences, 
                           windowed_tracks, 
                           specialEvents,
-                          specialEventsGivenToLastWindow);
+                          specialEventsGivenToLastWindow,
+                            window_end_ticks);
                   }
                   
                   //Normalize event to specified sequence and add to track
@@ -306,9 +311,15 @@ public class MIDIMethods
                                                    windowed_sequences);
               }
           }
+          int i = 1;
+          for(Sequence window : windowed_sequences) {
+              MidiSystem.write(window, 1, new File("/home/dinamix/Desktop/miditest/" + i++ + ".mid"));
+          }
           // Return the windows of MIDI data
           return windowed_sequences;
      }
+
+
      
      /**
       * Get the start and end tick arrays so that they only need to be processed
@@ -393,15 +404,23 @@ public class MIDIMethods
       */
      public static boolean checkForLastOverLapWindow(int current_sequence_index,
                                                   int track_index,
+                                                  int sequence_index,
                                                   Sequence[] windowed_sequences,
                                                   Track[][] windowed_tracks,
                                  MIDISpecialEvents specialEvents,
-                                 boolean specialEventsGivenToLastWindow) {
+                                 boolean specialEventsGivenToLastWindow,
+                                                     int[] sequence_end_ticks) {
          if(current_sequence_index == windowed_sequences.length - 2 &&
             !specialEventsGivenToLastWindow) {
             Track nextTrack = windowed_tracks[windowed_sequences.length - 1][track_index];
             replaceAllTicksToThisSequence(specialEvents);
-            thisTrackSpecialEventsToNextSequence(nextTrack,specialEvents);
+            thisTrackSpecialEventsToNextSequence(nextTrack,
+                    track_index,
+                    specialEvents,
+                    current_sequence_index,
+                    sequence_index,
+                    windowed_tracks,
+                    sequence_end_ticks);
             return true;
         }
          return false;
@@ -461,14 +480,23 @@ public class MIDIMethods
       */
      private static int checkForNewSequence( int current_sequence_index,
                                              int sequence_index,
+                                             int track_index,
                                              Track thisTrack,
-                                 MIDISpecialEvents specialEvents)
+                                             MIDISpecialEvents specialEvents,
+                                             Track[][] windowed_tracks,
+                                             int[] sequence_end_ticks)
              throws Exception
      {
          if(current_sequence_index != sequence_index) 
          {
              replaceAllTicksToThisSequence(specialEvents);
-             thisTrackSpecialEventsToNextSequence(thisTrack,specialEvents);
+             thisTrackSpecialEventsToNextSequence(thisTrack,
+                     track_index,
+                     specialEvents,
+                     current_sequence_index,
+                     sequence_index,
+                     windowed_tracks,
+                     sequence_end_ticks);
              current_sequence_index = sequence_index;
          }  
          if(sequence_index == -1) 
@@ -581,8 +609,13 @@ public class MIDIMethods
       * @param track the track to be added to the special events list
       * @param specialEvents the special midi events that will be added
       */
-     private static void thisTrackSpecialEventsToNextSequence(Track track, 
-                               MIDISpecialEvents specialEvents) {
+     private static void thisTrackSpecialEventsToNextSequence(Track track,
+                                                              int track_index,
+                                                              MIDISpecialEvents specialEvents,
+                                                              int current_sequence_index,
+                                                              int sequence_index,
+                                                              Track[][] windowed_tracks,
+                                                              int[] sequence_end_ticks) {
          HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
          for(MidiEvent event : thisTrackSpecialEvents.values()) {
              track.add(event);
@@ -592,6 +625,29 @@ public class MIDIMethods
          HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
          for(MidiEvent event : notesToNextSequence.values()) {
              track.add(event);
+             //For each event added to next sequence, add a note off to end of old sequence
+             ShortMessage note_on = (ShortMessage) event.getMessage();
+             for(int seq_ind = current_sequence_index; seq_ind < sequence_index; seq_ind++) {
+                 //Add Note on to all corresponding sequence
+                 if(seq_ind >= current_sequence_index + 1) {
+                     windowed_tracks[seq_ind][track_index].add(event);
+                 }
+
+                 //Then add note offs to end of all corresponding sequences
+                 int previous_sequence_end_tick = sequence_end_ticks[0];
+                ShortMessage note_off = null;
+                 try {
+                     note_off = new ShortMessage(ShortMessage.NOTE_OFF,
+                             note_on.getChannel(),
+                             note_on.getData1(),
+                             0);
+                 } catch (InvalidMidiDataException ex) {
+                     //Do Nothing since this should never happen
+                     System.err.println(ex.getMessage());
+                 }
+                 MidiEvent note_off_event = new MidiEvent(note_off, previous_sequence_end_tick);
+                 windowed_tracks[seq_ind][track_index].add(note_off_event);
+             }
          }
      }
      
