@@ -372,29 +372,34 @@ public class MathAndStatsMethods
      }
      
      
-     /**
-      * Return a normalized copy of the the given array. The original array is
-      * not altered.
-      */
-     public static double[] normalize(double[] to_normalize)
-     {
-          // Copy the to_normalize array
-          double[] normalized = new double[to_normalize.length];
-          for (int i = 0; i < normalized.length; i++)
-               normalized[i] = to_normalize[i];
-          
-          // Perform the normalization
-          double sum = getArraySum(normalized);
-          for (int i = 0; i < normalized.length; i++)
-          {
-               if (sum == 0.0) normalized[i] = 0.0;
-               else normalized[i] = normalized[i] / sum;
-          }
-          
-          // Return the normalized results
-          return normalized;
-     }
-     
+	/**
+	 * Return a normalized copy of the the given array. The original array is not altered. If the sum of all
+	 * entries of to_normalize is zero, then all entries of the returned array are set to 0.
+	 * 
+	 * @param to_normalize	The array to normalize.
+	 * @return				A new array representing a normalized version of to_normalize.
+	 */
+	public static double[] normalize(double[] to_normalize)
+	{
+		// Copy the to_normalize array
+		double[] normalized = new double[to_normalize.length];
+		for (int i = 0; i < normalized.length; i++)
+			normalized[i] = to_normalize[i];
+
+		// Perform the normalization
+		double sum = getArraySum(normalized);
+		for (int i = 0; i < normalized.length; i++)
+		{
+			if (sum == 0.0)
+				normalized[i] = 0.0;
+			else
+				normalized[i] = normalized[i] / sum;
+		}
+
+		// Return the normalized results
+		return normalized;
+	}
+
      
      /**
       * Return a normalized copy of the the given array. Normalization is
