@@ -311,10 +311,6 @@ public class MIDIMethods
                                                    windowed_sequences);
               }
           }
-          int i = 1;
-          for(Sequence window : windowed_sequences) {
-              MidiSystem.write(window, 1, new File("/home/dinamix/Desktop/miditest/" + i++ + ".mid"));
-          }
           // Return the windows of MIDI data
           return windowed_sequences;
      }
