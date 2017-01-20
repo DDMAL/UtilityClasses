@@ -273,16 +273,6 @@ public class MIDIMethods
               {
                   //Get all required data needed for window
                   MidiEvent thisEvent = originalTrack.get(event_index);
-
-                  /********TEST*********/
-                  if(thisEvent.getMessage() instanceof MetaMessage) {
-                      MetaMessage m = (MetaMessage)thisEvent.getMessage();
-                      if(m.getType() == 0x51) {
-                          System.out.println(thisEvent.getTick());
-                      }
-                  }
-                  /********TEST*********/
-
                   int startTick = (int)thisEvent.getTick();
                   int sequence_index = getSequenceIndex(startTick, window_start_ticks, window_end_ticks);
                   Track thisTrack = windowed_tracks[sequence_index][track_index];
@@ -323,10 +313,6 @@ public class MIDIMethods
                                                    windowed_sequences);
 
               }
-          }
-          int i = 0;
-          for(Sequence s : windowed_sequences) {
-              MidiSystem.write(s,1,new File("/home/dinamix/Desktop/miditest/" + i++ + ".mid"));
           }
           // Return the windows of MIDI data
           return windowed_sequences;
