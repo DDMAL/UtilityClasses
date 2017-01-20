@@ -273,6 +273,16 @@ public class MIDIMethods
               {
                   //Get all required data needed for window
                   MidiEvent thisEvent = originalTrack.get(event_index);
+
+                  /********TEST*********/
+                  if(thisEvent.getMessage() instanceof MetaMessage) {
+                      MetaMessage m = (MetaMessage)thisEvent.getMessage();
+                      if(m.getType() == 0x51) {
+                          System.out.println(thisEvent.getTick());
+                      }
+                  }
+                  /********TEST*********/
+
                   int startTick = (int)thisEvent.getTick();
                   int sequence_index = getSequenceIndex(startTick, window_start_ticks, window_end_ticks);
                   Track thisTrack = windowed_tracks[sequence_index][track_index];
@@ -284,6 +294,7 @@ public class MIDIMethods
                                                                             thisTrack, 
                                                                         specialEvents,
                                                                       windowed_tracks,
+                                                                    window_start_ticks,
                                                                     window_end_ticks);
                   checkForSpecialMidiEvent(thisEvent, specialEvents);
 
@@ -296,20 +307,26 @@ public class MIDIMethods
                           windowed_tracks, 
                           specialEvents,
                           specialEventsGivenToLastWindow,
+                            window_start_ticks,
                             window_end_ticks);
                   }
-                  
+
                   //Normalize event to specified sequence and add to track
                   //Then add this event to all appropriate windowed sequences
                   passEventToAllAppropriateWindows(thisEvent, 
-                                                   sequence_index, 
+                                                   sequence_index,
                                                    startTick, 
                                                    track_index, 
                                                    window_start_ticks, 
                                                    window_end_ticks, 
                                                    windowed_tracks, 
                                                    windowed_sequences);
+
               }
+          }
+          int i = 0;
+          for(Sequence s : windowed_sequences) {
+              MidiSystem.write(s,1,new File("/home/dinamix/Desktop/miditest/" + i++ + ".mid"));
           }
           // Return the windows of MIDI data
           return windowed_sequences;
@@ -403,8 +420,9 @@ public class MIDIMethods
                                                   int sequence_index,
                                                   Sequence[] windowed_sequences,
                                                   Track[][] windowed_tracks,
-                                 MIDISpecialEvents specialEvents,
-                                 boolean specialEventsGivenToLastWindow,
+                                                  MIDISpecialEvents specialEvents,
+                                                     boolean specialEventsGivenToLastWindow,
+                                                     int[] sequence_start_ticks,
                                                      int[] sequence_end_ticks) {
          if(current_sequence_index == windowed_sequences.length - 2 &&
             !specialEventsGivenToLastWindow) {
@@ -416,6 +434,7 @@ public class MIDIMethods
                     current_sequence_index,
                     sequence_index,
                     windowed_tracks,
+                    sequence_start_ticks,
                     sequence_end_ticks);
             return true;
         }
@@ -480,6 +499,7 @@ public class MIDIMethods
                                              Track thisTrack,
                                              MIDISpecialEvents specialEvents,
                                              Track[][] windowed_tracks,
+                                             int[] sequence_start_ticks,
                                              int[] sequence_end_ticks)
              throws Exception
      {
@@ -492,9 +512,10 @@ public class MIDIMethods
                      current_sequence_index,
                      sequence_index,
                      windowed_tracks,
+                     sequence_start_ticks,
                      sequence_end_ticks);
              current_sequence_index = sequence_index;
-         }  
+         }
          if(sequence_index == -1) 
          {
              throw new Exception("Array index does not match up with window ticks");
@@ -530,7 +551,9 @@ public class MIDIMethods
                  //add note when we find it starts
                 notesToNextSequence.put(pitch,thisEvent);
              }
-             else if(note.getCommand() == 0x80) { //note off
+             else if(note.getCommand() == 0x80 || //note off
+                     (note.getCommand() == 0x90 && //note on with 0 velocity
+                             note.getData2() == 0)) {
                  //remove note when we get note off
                  notesToNextSequence.remove(pitch);
              }
@@ -551,7 +574,8 @@ public class MIDIMethods
              thisTrackSpecialEvents.replace(key, eventCopy);
          }
 
-         //TODO only do this if we do not have overlap offset maybe
+         //TODO if we have overlap with new sequence, this new events need to be added separately
+         //TODO for each event that its on based on absolute_tick - window_start_tick
          HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
          for(Integer pitch : notesToNextSequence.keySet()) {
              MidiEvent originalEvent = notesToNextSequence.get(pitch);
@@ -611,6 +635,7 @@ public class MIDIMethods
                                                               int current_sequence_index,
                                                               int sequence_index,
                                                               Track[][] windowed_tracks,
+                                                              int[] sequence_start_ticks,
                                                               int[] sequence_end_ticks) {
          HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
          for(MidiEvent event : thisTrackSpecialEvents.values()) {
@@ -623,27 +648,24 @@ public class MIDIMethods
              track.add(event);
              //For each event added to next sequence, add a note off to end of old sequence
              ShortMessage note_on = (ShortMessage) event.getMessage();
-             for(int seq_ind = current_sequence_index; seq_ind < sequence_index; seq_ind++) {
+             //for(int seq_ind = current_sequence_index; seq_ind <= sequence_index; seq_ind++) {
                  //Add Note on to all corresponding sequence
-                 if(seq_ind >= current_sequence_index + 1) {
-                     windowed_tracks[seq_ind][track_index].add(event);
-                 }
-
+                     //windowed_tracks[sequence_index][track_index].add(event);
                  //Then add note offs to end of all corresponding sequences
-                 int previous_sequence_end_tick = sequence_end_ticks[0];
-                ShortMessage note_off = null;
+                 int previous_sequence_end_tick = sequence_end_ticks[current_sequence_index] - sequence_start_ticks[current_sequence_index];
+                 MidiEvent note_off_event = null;
                  try {
-                     note_off = new ShortMessage(ShortMessage.NOTE_OFF,
-                             note_on.getChannel(),
+                     note_off_event = MidiBuildMessage.createNoteOffEvent(
                              note_on.getData1(),
-                             0);
+                             previous_sequence_end_tick,
+                             note_on.getChannel()
+                     );
                  } catch (InvalidMidiDataException ex) {
                      //Do Nothing since this should never happen
                      System.err.println(ex.getMessage());
                  }
-                 MidiEvent note_off_event = new MidiEvent(note_off, previous_sequence_end_tick);
-                 windowed_tracks[seq_ind][track_index].add(note_off_event);
-             }
+                 windowed_tracks[current_sequence_index][track_index].add(note_off_event);
+             //}
          }
      }
      
