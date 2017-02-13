@@ -497,13 +497,19 @@ public class MIDIMethods
                                                          Track[][] windowed_tracks,
                                                          Sequence[] windowed_sequences) 
      {
-         //for(int loop_index = sequence_index; loop_index < windowed_sequences.length; loop_index++)
-         //{
-             //optimization here, so usually only 1 iteration performed
-            //if(startTick < window_start_ticks[loop_index]) {
-            //    break;
-            //}
-         if(window_overlap_offset > 0.000 &&
+         for(int loop_index = sequence_index; loop_index >= 0; loop_index--)
+         {
+             //Check if start tick is greater than window end tick
+             //TODO fix start tick when we are at the last tick in window end ticks
+             if(loop_index == window_end_ticks.length - 1 &&
+                     startTick == window_end_ticks[window_end_ticks.length - 1] + 1)
+             {
+                //Then do nothing and don't make the following check
+             }
+             else if(startTick > window_end_ticks[loop_index]) {
+                 break;
+             }
+         /*if(window_overlap_offset > 0.000 &&
                  sequence_index > 0) 
          {
              int overlap_index = sequence_index - 1;
@@ -518,19 +524,19 @@ public class MIDIMethods
                  MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
                  thisTrack.add(normalizedTickEvent);
              }
-         }
-            int current_sequence_start_tick = window_start_ticks[sequence_index];
+         }*/
+            int current_sequence_start_tick = window_start_ticks[loop_index];
             int normalized_tick = startTick - current_sequence_start_tick;
-            if((normalized_tick >= 0 &&
-               startTick >= window_start_ticks[sequence_index] && 
-               startTick <= window_end_ticks[sequence_index]) ||
+            /*if((normalized_tick >= 0 &&
+               startTick >= window_start_ticks[loop_index] &&
+               startTick <= window_end_ticks[loop_index]) ||
                startTick == window_end_ticks[window_end_ticks.length - 1] + 1); //off by one here to account for last window end tick
-            {
-                Track thisTrack = windowed_tracks[sequence_index][track_index];
+            {*/
+                Track thisTrack = windowed_tracks[loop_index][track_index];
                 MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
                 thisTrack.add(normalizedTickEvent);
-            }
-        //}
+            //}
+         }
      }
      
      /**
@@ -761,11 +767,23 @@ public class MIDIMethods
          if(intTick > window_end_ticks[lastIndex]) {
              return lastIndex;
          }
+         //Also check if it is in the last window and so just return it
+         if(intTick >= window_start_ticks[lastIndex] &&
+                 intTick <= window_end_ticks[lastIndex]) {
+             return lastIndex;
+         }
          
-         //Check all ticks to find first proper window
+         //Check all ticks to find last proper window
+         //This allows for natural copying of midi events to previous windows
+         boolean found_index = false;
+         int last_index_found = 0;
          for(int i = 0; i < window_start_ticks.length; i++) {
              if(window_start_ticks[i] <= intTick && window_end_ticks[i] >= intTick) {
-                 return i;
+                 found_index = true;
+                 last_index_found = i;
+             }
+             else if(found_index && intTick <= window_start_ticks[i]) {
+                 return last_index_found;
              }
          }
          return -1; //this only happens if an error occured

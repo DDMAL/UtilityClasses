@@ -225,6 +225,53 @@ public class MIDIMethodsTest {
             testcount++;
         }*/
         assertEquals(14, saintsaensWindows.length);
+        
+        //TEST WINDOW OVERLAP OFFSET
+        Sequence sequenceOverlap = new Sequence(Sequence.PPQ, 256);
+        Track trackOverlap = sequenceOverlap.createTrack();
+        trackOverlap.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        trackOverlap.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        trackOverlap.add(MidiBuildEvent.createNoteOffEvent(35, 1024, 0));
+
+        Sequence[] test_sequence_overlap = new Sequence[4];
+        test_sequence_overlap[0] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_overlap_0 = test_sequence_overlap[0].createTrack();
+        test_sequence_overlap_0.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        test_sequence_overlap_0.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_overlap_0.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
+
+        test_sequence_overlap[1] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_overlap_1 = test_sequence_overlap[1].createTrack();
+        test_sequence_overlap_1.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        test_sequence_overlap_1.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_overlap_1.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
+
+        test_sequence_overlap[2] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_overlap_2 = test_sequence_overlap[2].createTrack();
+        test_sequence_overlap_2.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 510, 0));
+        //Second one due to off by one in end tick array, does not change actual MIDI
+        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 510, 0));
+
+        test_sequence_overlap[3] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_overlap_3 = test_sequence_overlap[3].createTrack();
+        test_sequence_overlap_3.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        test_sequence_overlap_3.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_overlap_3.add(MidiBuildEvent.createNoteOffEvent(35, 253, 0));
+
+        window_duration = 1.0;
+        window_overlap_offset = 0.5;
+        seconds_per_tick = MIDIMethods.getSecondsPerTick(sequenceOverlap);
+        startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequenceOverlap,
+                window_duration,
+                window_overlap_offset,
+                seconds_per_tick);
+        start_ticks = startEndTickArrays.get(0);
+        end_ticks = startEndTickArrays.get(1);
+        Sequence[] windowed_sequences_overlap = MIDIMethods.breakSequenceIntoWindows(sequenceOverlap, 1, 0,start_ticks,end_ticks);
+        compareEventByteArrayTest(windowed_sequences_overlap,test_sequence_overlap);
+        compareEventByteArrayTest(test_sequence_overlap,windowed_sequences_overlap);
     }
 
     private void compareEventByteArrayTest(Sequence[] actualSequences, Sequence[] expectedSequences) {
