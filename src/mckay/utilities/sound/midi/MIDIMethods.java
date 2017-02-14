@@ -275,9 +275,7 @@ public class MIDIMethods
           for(int track_index = 0; track_index < original_tracks.length; track_index++) 
           {
               Track originalTrack = original_tracks[track_index];
-              // key = meta midi byte, value = List of special midi messages
               MIDISpecialEvents specialEvents = new MIDISpecialEvents();
-              boolean specialEventsGivenToLastWindow = false;
               for(int event_index = 0; event_index < originalTrack.size(); event_index++)
               {
                   //Get all required data needed for window
@@ -286,41 +284,15 @@ public class MIDIMethods
                   int sequence_index = getSequenceIndex(startTick, window_start_ticks, window_end_ticks);
                   Track thisTrack = windowed_tracks[sequence_index][track_index];
                   
-                  //Check for special events and if we need to copy to sequence
-                  current_sequence_index = checkForNewSequence(current_sequence_index,
-                                                                       sequence_index,
-                                                                          track_index,
-                                                                            thisTrack, 
-                                                                        specialEvents,
-                                                                      windowed_tracks,
-                                                                    window_start_ticks,
-                                                                    window_end_ticks);
+                  //Check for special events and if we need to copy to new window sequence
+                  current_sequence_index = checkForNewSequence(current_sequence_index, sequence_index, track_index,
+                          thisTrack, specialEvents, windowed_tracks, window_start_ticks, window_end_ticks);
                   checkForSpecialMidiEvent(thisEvent, specialEvents);
-
-                  //Check for special events in last overlapped window
-                  /*if(window_overlap_offset != 0) {
-                    specialEventsGivenToLastWindow = checkForLastOverLapWindow(current_sequence_index, 
-                          track_index,
-                          sequence_index,
-                          windowed_sequences, 
-                          windowed_tracks, 
-                          specialEvents,
-                          specialEventsGivenToLastWindow,
-                            window_start_ticks,
-                            window_end_ticks);
-                  }*/
 
                   //Normalize event to specified sequence and add to track
                   //Then add this event to all appropriate windowed sequences
-                  passEventToAllAppropriateWindows(thisEvent,
-                                                   window_overlap_offset,
-                                                   sequence_index,
-                                                   startTick, 
-                                                   track_index, 
-                                                   window_start_ticks, 
-                                                   window_end_ticks, 
-                                                   windowed_tracks, 
-                                                   windowed_sequences);
+                  passEventToAllAppropriateWindows(thisEvent, window_overlap_offset, sequence_index, startTick,
+                          track_index, window_start_ticks, window_end_ticks, windowed_tracks);
               }
           }
 
@@ -329,13 +301,14 @@ public class MIDIMethods
      }
 
     /**
-     * Used for general testing of the breakSequenceIntoWindows() function.
-     * @param thisEvent
-     * @param track_index
+     * Used for general testing of midi events within a particular track.
+     * Currently, it will print out detailed information about tempo messages
+     * and time signature messages.
+     * @param thisEvent The event to be tested and printed out.
+     * @param track_index The track in which this event occurs for convenience.
      */
-     private static void checkMetaMessages(MidiEvent thisEvent, int track_index) {
+     public static void checkMetaMessages(MidiEvent thisEvent, int track_index) {
          int startTick = (int)thisEvent.getTick();
-         /********TEST*********/
          if(thisEvent.getMessage() instanceof MetaMessage) {
              MetaMessage m = (MetaMessage)thisEvent.getMessage();
              if(m.getType() == 0x51) { //tempo message
@@ -355,7 +328,6 @@ public class MIDIMethods
                          " at tick : " + startTick);
              }
          }
-         /********TEST*********/
      }
 
     private static String byteArrayToString(byte[] bytes) {
@@ -434,50 +406,16 @@ public class MIDIMethods
           
           return startEndTickList;
      }
+
      
      /**
-      * Check to see if last window has been given the appropriate special
-      * midi events.
-      * @param current_sequence_index index of current sequence window
-      * @param track_index current track index to be added to
-      * @param windowed_sequences all window sequences
-      * @param windowed_tracks all tracks corresponding to windowed sequences
-      * @param specialEvents a map of special events in track
-      * @param specialEventsGivenToLastWindow whether or not the special events been passed to this window yet
-      * @return true if events have been given to last window for the first time,
-      *         otherwise return false
-      */
-     public static boolean checkForLastOverLapWindow(int current_sequence_index,
-                                                  int track_index,
-                                                  int sequence_index,
-                                                  Sequence[] windowed_sequences,
-                                                  Track[][] windowed_tracks,
-                                                  MIDISpecialEvents specialEvents,
-                                                     boolean specialEventsGivenToLastWindow,
-                                                     int[] sequence_start_ticks,
-                                                     int[] sequence_end_ticks) {
-         if(current_sequence_index == windowed_sequences.length - 2 &&
-            !specialEventsGivenToLastWindow) {
-            Track nextTrack = windowed_tracks[windowed_sequences.length - 1][track_index];
-            replaceAllTicksToThisSequence(specialEvents);
-            thisTrackSpecialEventsToNextSequence(nextTrack,
-                    track_index,
-                    specialEvents,
-                    current_sequence_index,
-                    sequence_index,
-                    windowed_tracks,
-                    sequence_start_ticks,
-                    sequence_end_ticks);
-            return true;
-        }
-         return false;
-     }
-     
-     /**
-      * Pass the given midi event to each appropriate window by checking
-      * if the event startTick is within any sequence window length.
-      * This function is optimized to return once an unused sequence has been
-      * reached.
+      * This Event is passed on to the given sequence_index and track_index
+      * corresponding to the windowed_tracks array. The start tick of the event
+      * is therefore normalized to the given windowed sequence.
+      * If the event occurs in any previous window, then it is also copied in those
+      * windows. This accounts for window overlap offset functionality. This will only run
+      * once if we do not have window overlap offset since each event occurs in exactly
+      * one window.
       * @param thisEvent the event to be added to the sequence
       * @param sequence_index the current sequence index before this function call
       * @param startTick the start of this event
@@ -485,22 +423,20 @@ public class MIDIMethods
       * @param window_start_ticks all sequence window start ticks
       * @param window_end_ticks all sequence window end ticks
       * @param windowed_tracks all windowed tracks
-      * @param windowed_sequences all windowed sequences
       */
      public static void passEventToAllAppropriateWindows(MidiEvent thisEvent,
-                                                         double window_overlap_offset,
+                                                         double window_overlap_offset, //left here for convenience
                                                          int sequence_index,
                                                          int startTick,
                                                          int track_index,
                                                          int[] window_start_ticks,
                                                          int[] window_end_ticks,
-                                                         Track[][] windowed_tracks,
-                                                         Sequence[] windowed_sequences) 
+                                                         Track[][] windowed_tracks)
      {
          for(int loop_index = sequence_index; loop_index >= 0; loop_index--)
          {
-             //Check if start tick is greater than window end tick
-             //TODO fix start tick when we are at the last tick in window end ticks
+             //TODO This check added due to added tick passed last window_end_ticks value
+             //TODO Could maybe change if last window_end_ticks would end on actual last tick
              if(loop_index == window_end_ticks.length - 1 &&
                      startTick == window_end_ticks[window_end_ticks.length - 1] + 1)
              {
@@ -509,33 +445,11 @@ public class MIDIMethods
              else if(startTick > window_end_ticks[loop_index]) {
                  break;
              }
-         /*if(window_overlap_offset > 0.000 &&
-                 sequence_index > 0) 
-         {
-             int overlap_index = sequence_index - 1;
-             int current_sequence_start_tick = window_start_ticks[overlap_index];
+             int current_sequence_start_tick = window_start_ticks[loop_index];
              int normalized_tick = startTick - current_sequence_start_tick;
-             if((normalized_tick >= 0 &&
-                     startTick >= window_start_ticks[overlap_index] &&
-                     startTick <= window_end_ticks[overlap_index]) ||
-                     startTick == window_end_ticks[window_end_ticks.length - 1] + 1); //off by one here to account for last window end tick
-             {
-                 Track thisTrack = windowed_tracks[overlap_index][track_index];
-                 MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
-                 thisTrack.add(normalizedTickEvent);
-             }
-         }*/
-            int current_sequence_start_tick = window_start_ticks[loop_index];
-            int normalized_tick = startTick - current_sequence_start_tick;
-            /*if((normalized_tick >= 0 &&
-               startTick >= window_start_ticks[loop_index] &&
-               startTick <= window_end_ticks[loop_index]) ||
-               startTick == window_end_ticks[window_end_ticks.length - 1] + 1); //off by one here to account for last window end tick
-            {*/
-                Track thisTrack = windowed_tracks[loop_index][track_index];
-                MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
-                thisTrack.add(normalizedTickEvent);
-            //}
+             Track thisTrack = windowed_tracks[loop_index][track_index];
+             MidiEvent normalizedTickEvent = getDeepCopyMidiEventWithNewTick(thisEvent, normalized_tick);
+             thisTrack.add(normalizedTickEvent);
          }
      }
      
@@ -561,14 +475,8 @@ public class MIDIMethods
          if(current_sequence_index != sequence_index) 
          {
              replaceAllTicksToThisSequence(specialEvents);
-             thisTrackSpecialEventsToNextSequence(thisTrack,
-                     track_index,
-                     specialEvents,
-                     current_sequence_index,
-                     sequence_index,
-                     windowed_tracks,
-                     sequence_start_ticks,
-                     sequence_end_ticks);
+             thisTrackSpecialEventsToNextSequence(thisTrack, track_index, specialEvents, current_sequence_index,
+                     sequence_index, windowed_tracks, sequence_start_ticks, sequence_end_ticks);
              current_sequence_index = sequence_index;
          }
          if(sequence_index == -1) 
@@ -582,11 +490,11 @@ public class MIDIMethods
       * Check whether you need to add thisEvent to the special events hash or not.
       * Also check for note ons so that we can keep track of notes that are still on
       * at the end of a sequence to pass them to next sequence.
+      * It is worth noting that this is used together with
       * @param thisEvent the event to be added to special events list
       * @param specialEvents the special events that will be added to
       */
-     private static void checkForSpecialMidiEvent(MidiEvent thisEvent,
-                                 MIDISpecialEvents specialEvents)
+     private static void checkForSpecialMidiEvent(MidiEvent thisEvent, MIDISpecialEvents specialEvents)
      {
          MidiMessage thisMessage = thisEvent.getMessage();
          HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
@@ -614,7 +522,7 @@ public class MIDIMethods
              }
          }
      }
-     
+
      /**
       * Used to replace ticks to current sequence window when changing window
       * and copying over special midi events to new window.
@@ -622,15 +530,14 @@ public class MIDIMethods
       * @param specialEvents the special events currently in this track
       */
      private static void replaceAllTicksToThisSequence(MIDISpecialEvents specialEvents) {
+         //Copy special events (e.g. program changes and meta messages)
          HashMap<Byte,MidiEvent> thisTrackSpecialEvents = specialEvents.getThisTrackSpecialEvents();
          for(Byte key : thisTrackSpecialEvents.keySet()) {
              MidiEvent originalEvent = thisTrackSpecialEvents.get(key);
              MidiEvent eventCopy = getDeepCopyMidiEventWithNewTick(originalEvent,0);
              thisTrackSpecialEvents.replace(key, eventCopy);
          }
-
-         //TODO if we have overlap with new sequence, this new events need to be added separately
-         //TODO for each event that its on based on absolute_tick - window_start_tick
+         //Copy note ons that have not been turned off between windows
          HashMap<Integer,MidiEvent> notesToNextSequence = specialEvents.getNotesToNextSequence();
          for(Integer pitch : notesToNextSequence.keySet()) {
              MidiEvent originalEvent = notesToNextSequence.get(pitch);
@@ -647,36 +554,10 @@ public class MIDIMethods
       * @param new_tick new tick to be added to deep copy of event
       * @return Deep copy of originalEvent with new_tick
       */
-     private static MidiEvent getDeepCopyMidiEventWithNewTick(MidiEvent originalEvent,
-                                                                int new_tick) {
+     private static MidiEvent getDeepCopyMidiEventWithNewTick(MidiEvent originalEvent,int new_tick)
+     {
          MidiMessage originalMessage = originalEvent.getMessage();
          return new MidiEvent(originalMessage, new_tick);
-     }
-     
-     /**
-      * Gets the second byte in the midi meta data array and uses this
-      * as the hash code to store special midi events.
-      * @param newEvent event containing the message
-      * @return if we have a meta-message it will return the second data byte
-      *         and if we have a program change, it will return the first data byte
-      */
-     private static Byte getMidiMetaStatusHash(MidiEvent newEvent) {
-         MidiMessage message = newEvent.getMessage();
-         byte[] newMidiMessageArray = message.getMessage();
-         int status = message.getStatus();
-         Byte metaTypeByte;
-         //program change
-         //NEED TO CHANGE HERE AND IN statusByteIsSpecial(MidiMessage)
-         if(status >= 192 && status <= 207) {
-             //Program change contains status byte 1100 XXXX
-             //Where XXXX ranges between 16 bits i.e. 11000000 to 11001111 (= 192 to 207)
-            metaTypeByte = newMidiMessageArray[0];
-         }
-         else /* if status == 255 */{
-             //meta-message
-             metaTypeByte = newMidiMessageArray[1];
-         }
-         return metaTypeByte;
      }
      
      /**
@@ -735,6 +616,7 @@ public class MIDIMethods
      /**
       * Switch statement for all special midi message status bytes.
       * Use status byte to work for meta messages we may not know about.
+      * * It is worth noting that this needs to be updated with getMidiMetaStatusHash() function below.
       * @param message the midi message to be checked
       * @return true for 255 (meta-message) or 192-207 (program change), else false
       */
@@ -749,7 +631,34 @@ public class MIDIMethods
              return false;
          }
      }
-     
+
+    /**
+     * Gets the second byte in the midi meta data array and uses this
+     * as the hash code to store special midi events.
+     * It is worth noting that this needs to be updated with statusByteIsSpecial() function above.
+     * @param newEvent event containing the message
+     * @return if we have a meta-message it will return the second data byte
+     *         and if we have a program change, it will return the first data byte
+     */
+    private static Byte getMidiMetaStatusHash(MidiEvent newEvent) {
+        MidiMessage message = newEvent.getMessage();
+        byte[] newMidiMessageArray = message.getMessage();
+        int status = message.getStatus();
+        Byte metaTypeByte;
+        //program change
+        //NEED TO CHANGE HERE AND IN statusByteIsSpecial(MidiMessage)
+        if(status >= 192 && status <= 207) {
+            //Program change contains status byte 1100 XXXX
+            //Where XXXX ranges between 16 bits i.e. 11000000 to 11001111 (= 192 to 207)
+            metaTypeByte = newMidiMessageArray[0];
+        }
+        else /* if status == 255 */{
+            //meta-message
+            metaTypeByte = newMidiMessageArray[1];
+        }
+        return metaTypeByte;
+    }
+
      /**
       * Helper method for breakSequenceIntoWindows to validate tick indices and
       * to be able to get the appropriate sequence window.
