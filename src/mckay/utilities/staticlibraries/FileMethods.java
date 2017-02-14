@@ -137,7 +137,7 @@ public class FileMethods
       *                       sent if the file cannot be read from.
       * @param need_write     If this is set to true, then an exception is
       *                       sent if the file cannot be written to.
-      * @return               Value of true if no problems occured during
+      * @return               Value of true if no problems occurred during
       *                       file validation.
       * @throws Exception     An informative exception is thrown if there is
       *                       a problem with the file.

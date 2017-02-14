@@ -101,6 +101,101 @@ public class StringMethods
           }
      }
      
+	 
+	/**
+	 * Return a version of the given string that is broken into lines of length no greater that the specified
+	 * maximum. Original line breaks are maintained, and hanging indents may be added if wished. The original
+	 * string is left unchanged.
+	 * 
+	 * @param to_wrap			The string to wrap.
+	 * @param chars_per_line	The maximum number of characters per line.
+	 * @param hanging_indent	The number of spaces to indent all lines but the first of each paragraph. A
+	 *							value of 0 indicates no hanging indent.
+	 * @return					The wrapped string.
+	 */
+	public static String wrapString(String to_wrap, int chars_per_line, int hanging_indent)
+	{
+		// Return null if to_wrap is null
+		if (to_wrap == null)
+			return null;
+
+		// Return text unchanged if it is already under chars_per_line
+		if (to_wrap.length() <= chars_per_line)
+			return to_wrap;
+
+		// Prepare variables to hold contents
+		char[] chars = to_wrap.toCharArray();
+		ArrayList<String> lines = new ArrayList();
+		StringBuilder line = new StringBuilder();
+		StringBuffer word = new StringBuffer();
+
+		// Go through chars one by one
+		for (int i = 0; i < chars.length; i++)
+		{
+			// Add the current char to this word
+			word.append(chars[i]);
+
+			// If a space is encountered, then add the word to this line if chars_per_line has not been
+			// exceeded, and add this line to lines if it has (without this word) while adding this word to
+			// the next line (preceded by a hanging indent)
+			if (chars[i] == ' ')
+			{
+				if ((line.length() + word.length()) > chars_per_line)
+				{
+					lines.add(line.toString());
+					line.delete(0, line.length());
+
+					// Add a hanging indent
+					for (int j = 0; j < hanging_indent; j++)
+						line.append(" ");
+
+					line.append(word);
+					word.delete(0, word.length());
+				}
+
+				else
+				{
+					line.append(word);
+					word.delete(0, word.length());
+				}
+			}
+			
+			// Create new line if there is a new line character in to_wrap
+			else if (chars[i] == '\n')
+			{
+				line.append(word);
+				lines.add(line.toString());
+				line.delete(0, line.length());
+				word.delete(0, word.length());
+			}
+		}
+
+		// Deal with any charachters in the final word
+		if (word.length() > 0)
+		{
+			if ((line.length() + word.length()) > chars_per_line)
+			{
+				lines.add(line.toString());
+				line.delete(0, line.length());
+			}
+			line.append(word);
+		}
+
+		// Deal with the final line
+		if (line.length() > 0)
+			lines.add(line.toString());
+
+		// Combine the line into a single string with line breaks added and return the result
+		String result = "";
+		for (int i = 0; i < lines.size(); i++)
+		{
+			result += lines.get(i);
+			if (!lines.get(i).endsWith("\n"))
+				result += "\n";
+		}
+		return result;
+	}
+	 
      
      /**
       * Breaks the given input string into tokens based on the given delimiter,
