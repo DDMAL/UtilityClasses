@@ -10,6 +10,9 @@ package mckay.utilities.staticlibraries;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.JOptionPane;
@@ -127,7 +130,142 @@ public class FileMethods
           FileOutputStream to = new FileOutputStream(file);
           return new DataOutputStream(to);
      }
+	 
+	 
+	/**
+	 * Verify that the given path is a legitimate path to a file or directory. The path may refer to an
+	 * existing file or directory, or it may simply be a potential path. An informative exception is thrown if
+	 * a problem is detected with the specified path. The passed path_to_check_string is left unaltered, and
+	 * no manipulations are performed at the specified path (i.e. no actual files or directories are created,
+	 * modified or deleted).
+	 *
+	 * <p>This method checks both the specific aspects specified by its arguments as well as additional 
+	 * general legitimacy checks (e.g. the path refers to a location (parent directory) that actually exists,
+	 * the path is not empty, there are no illegal characters in the path, etc.). Some of these general
+	 * legitimacy checks depend to a certain extent on the current operating system, so this method should 
+	 * only be called while running the JVM on the same operating system that the ultimate file access will be
+	 * performed on if one wishes to ensure that there will not be a problem when the file access occurs.</p>
+	 * 
+	 * <p>Certain combinations of input arguments will always result in an exception being thrown (e.g. if 
+	 * both the must_exist and must_not_exist arguments are true), so the user should be sure to only choose
+	 * such combinations if specific kinds of exceptions are wanted.</p>
+	 * 
+	 * @param path_to_check_string	The path to a file or directory that is to be checked for legitimacy.
+	 * @param must_be_regular_file	True if the path must refer to a regular file (e.g. not a directory).
+	 * @param must_be_directory		True if the path must refer to a directory.
+	 * @param must_be_readable		True if the path must refer to a readable file or directory. This argument
+	 *								is ignored if the file does not in fact exist (no check is performed in
+	 *								such a case).
+	 * @param must_be_writable		True if the path must refer to a writable file or directory. This argument
+	 *								is ignored if the file does not in fact exist (no check is performed in
+	 *								such a case).
+	 * @param must_exist			True if the path must refer to a file or directory that actually exists.
+	 * @param must_not_exist		True if the path must refer to a file or directory that must not yet
+	 *								actually exist.
+	 * @throws Exception			An informative exception is thrown if the path is invalid for any general
+	 *								reasons, or if it violates any requirements specified by the arguments are
+	 *								not met.
+	 */
+	public static void verifyValidPath( String path_to_check_string,
+	                                    boolean must_be_regular_file,
+	                                    boolean must_be_directory,
+	                                    boolean must_be_readable,
+	                                    boolean must_be_writable,
+	                                    boolean must_exist,
+	                                    boolean must_not_exist )
+		throws Exception
+	{
+		// Variables to hold various representations of the path
+		File file_to_check = null;
+		Path path_to_check = null;
+		
+		// Verify that a path to check is provided
+		if (path_to_check_string == null)
+			throw new Exception("No path is specified.");
+		if (path_to_check_string.equals(""))
+			throw new Exception("An empty path is specified.");
 
+		// Verify that path_to_check is a properly formed path
+		try
+		{
+			path_to_check = Paths.get(path_to_check_string);
+			file_to_check = new File(path_to_check_string);
+			file_to_check.getCanonicalFile();
+		}
+		catch (InvalidPathException e)
+		{
+			throw new Exception( "The specified path is malformed:\n" +
+			                     "     " + path_to_check_string + "\n" +
+			                     "Reason: " + e.getReason() );
+		}
+		catch (Exception e)
+		{
+			throw new Exception( "The specified path is malformed:\n" +
+			                     "     " + path_to_check_string + "\n");
+		}
+
+		// Verify that the parent directory referred to exists
+		try
+		{
+			if (!file_to_check.getParentFile().exists())
+				throw new Exception();
+		}
+		catch (Exception e)
+		{
+			throw new Exception( "The specified path does not refer to an existing parent directory:\n" + 
+			                     "     " + path_to_check_string);
+		}
+		
+		// Deal with a situation where the specified path corresponds to a file that already exists
+		if (file_to_check.exists())
+		{
+			if (must_not_exist)
+				throw new Exception( "The specified path corresponds to the path of an already existing resource:\n" + 
+									 "     " + path_to_check_string);			
+			else if (must_be_readable && !Files.isReadable(path_to_check))
+				throw new Exception( "The specified path is not readable:\n" + 
+									 "     " + path_to_check_string);
+			else if (must_be_writable && !Files.isWritable(path_to_check))
+				throw new Exception( "The specified path is not writable:\n" + 
+									 "     " + path_to_check_string);
+			else if (must_be_regular_file && !Files.isRegularFile(path_to_check))
+			{
+				if (Files.isDirectory(path_to_check))
+					throw new Exception( "The specified path refers to a directory rather than a file:\n" + 
+										 "     " + path_to_check_string);
+				else
+					throw new Exception( "The specified path refers to a non-regular file:\n" + 
+										 "     " + path_to_check_string);
+			}
+			else if (must_be_directory && !Files.isDirectory(path_to_check))
+				throw new Exception( "The specified path refers to a file rather than a directory:\n" + 
+									 "     " + path_to_check_string);		
+		}
+		
+		// Deal with a situation wher the specified path does not correspond to any already existing files
+		else
+		{
+			if (must_exist)
+				throw new Exception( "The specified path does not correspond to an already existing resource:\n" + 
+									 "     " + path_to_check_string);
+			
+			// Check if would be a directory
+			boolean is_directory = false;
+			char last_char = path_to_check_string.charAt(path_to_check_string.length() - 1);
+			if ( last_char == '/' ||
+			     last_char == '\\' ||
+			     last_char == ':' )
+				is_directory = true;
+
+			if (must_be_regular_file && is_directory)
+				throw new Exception( "The specified path is formulated as a directory path rather than a file path:\n" + 
+									 "     " + path_to_check_string);
+			else if (must_be_directory && !is_directory)
+				throw new Exception( "The specified path is forumulated as a file path rather than a directory path:\n" + 
+									 "     " + path_to_check_string);			
+		}
+	}
+	 
 
      /**
       * Tests the given file to see if it is a valid file.
