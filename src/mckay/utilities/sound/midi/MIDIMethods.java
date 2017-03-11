@@ -10,10 +10,7 @@ package mckay.utilities.sound.midi;
 import javax.sound.midi.*;
 import java.io.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -157,8 +154,15 @@ public class MIDIMethods
           int ticks_per_beat = sequence.getResolution();
           
           // Caclulate the average number of MIDI ticks corresponding to 1 second of score time
-          double mean_ticks_per_sec = ((double) sequence.getTickLength()) / ((double) sequence.getMicrosecondLength() / 1000000.0);
-          
+          // Note that we round down with int due to error obtained from the getMicroSecondLength() functions.
+          // This returns inconsistent values with respect to the placement of notes relative to the PPQ.
+          // This causes a very subtle error due to what seems like rounding at the lower end of the decimal
+          // point area. Converting to int eliminates this minor error and proves to be consistent due to the
+          // fact that the second length is much less than the tick length in all cases
+          // (i.e. varied PPQs and midi event tick placements).
+          //TODO check if this solution of going from int to double is correct, maybe better to round but probably not
+          double mean_ticks_per_sec = (int)(((double) sequence.getTickLength()) / ((double) sequence.getMicrosecondLength() / 1000000.0));
+
           // Instantiate seconds_per_tick array and initialize entries to the average
           // number of ticks per second
           double[] seconds_per_tick = new double[ (int) sequence.getTickLength() + 1];
@@ -206,6 +210,20 @@ public class MIDIMethods
           
           // Return the results
           return seconds_per_tick;
+     }
+
+    /**
+     * Returns the cummulative seconds up until the given at_tick.
+     * @param at_tick Tick to stop at (including).
+     * @param seconds_per_tick Number of seconds per tick.
+     * @return Returns the cummulative seconds up until the given at_tick.
+     */
+     public static double getSecondsAtTick(int at_tick, double[] seconds_per_tick) {
+         double seconds_at_tick = 0.0;
+         for(int tick = 0; tick <= at_tick; tick++) {
+             seconds_at_tick += seconds_per_tick[tick];
+         }
+         return seconds_at_tick;
      }
      
      
@@ -360,15 +378,15 @@ public class MIDIMethods
                throw new Exception("The MIDI sequence could not be processed because it is too long.");
           
           // Calculate the window start and end tick indices
-          LinkedList<Integer> window_start_ticks_list = new LinkedList<Integer>();
-          LinkedList<Integer> window_end_ticks_list = new LinkedList<Integer>();
+          List<Integer> window_start_ticks_list = new LinkedList<>();
+          List<Integer> window_end_ticks_list = new LinkedList<>();
           double total_duration = original_sequence.getMicrosecondLength() / 1000000.0;
           double time_interval_to_next_tick = window_duration - window_overlap_offset;
           boolean found_next_tick = false;
           int tick_of_next_beginning = 0;
           int this_tick = 0;
           double total_seconds_accumulated_so_far = 0.0;
-          while (total_seconds_accumulated_so_far < total_duration && this_tick < seconds_per_tick.length)
+          while (total_seconds_accumulated_so_far <= total_duration && this_tick < seconds_per_tick.length)
           {
                window_start_ticks_list.add(new Integer(this_tick));
                double seconds_accumulated_so_far = 0.0;
@@ -376,12 +394,11 @@ public class MIDIMethods
                {
                     seconds_accumulated_so_far += seconds_per_tick[this_tick];
                     this_tick++;
-                    if (!found_next_tick)
-                         if (seconds_accumulated_so_far > time_interval_to_next_tick)
-                         {
-                         tick_of_next_beginning = this_tick;
-                         found_next_tick = true;
-                         }
+                    if (!found_next_tick && seconds_accumulated_so_far >= time_interval_to_next_tick)
+                    {
+                            tick_of_next_beginning = this_tick;
+                            found_next_tick = true;
+                    }
                }
                window_end_ticks_list.add(new Integer(this_tick - 1));
                if (found_next_tick)
@@ -389,21 +406,12 @@ public class MIDIMethods
                found_next_tick = false;
                total_seconds_accumulated_so_far += seconds_accumulated_so_far - window_overlap_offset;
           }
-          
-          // Store the window start and end tick indices
-          Integer[] window_start_ticks_I = window_start_ticks_list.toArray(new Integer[1]);
-          int[] window_start_ticks = new int[window_start_ticks_I.length];
-          for (int i = 0; i < window_start_ticks.length; i++)
-               window_start_ticks[i] = window_start_ticks_I[i].intValue();
-          Integer[] window_end_ticks_I = window_end_ticks_list.toArray(new Integer[1]);
-          int[] window_end_ticks = new int[window_end_ticks_I.length];
-          for (int i = 0; i < window_end_ticks.length; i++)
-               window_end_ticks[i] = window_end_ticks_I[i].intValue();
 
           List<int[]> startEndTickList = new ArrayList<>();
-          startEndTickList.add(window_start_ticks);
-          startEndTickList.add(window_end_ticks);
-          
+          int[] start_tick_array = Arrays.stream(window_start_ticks_list.toArray(new Integer[0])).mapToInt(i->i).toArray();
+          int[] end_tick_array = Arrays.stream(window_end_ticks_list.toArray(new Integer[0])).mapToInt(i->i).toArray();
+          startEndTickList.add(start_tick_array);
+          startEndTickList.add(end_tick_array);
           return startEndTickList;
      }
 

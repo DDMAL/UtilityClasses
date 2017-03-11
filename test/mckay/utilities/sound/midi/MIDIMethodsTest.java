@@ -47,7 +47,7 @@ public class MIDIMethodsTest {
         testTrack.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
         testTrack.add(MidiBuildEvent.createNoteOffEvent(35, 1024, 0));
         
-        Sequence[] test_sequence = new Sequence[2];
+        Sequence[] test_sequence = new Sequence[3];
         test_sequence[0] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_0 = test_sequence[0].createTrack();
         test_sequence_0.add(MidiBuildEvent.createProgramChange(24, 0, 0));
@@ -58,13 +58,19 @@ public class MIDIMethodsTest {
         Track test_sequence_1 = test_sequence[1].createTrack();
         test_sequence_1.add(MidiBuildEvent.createProgramChange(24, 0, 0));
         test_sequence_1.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
-        test_sequence_1.add(MidiBuildEvent.createNoteOffEvent(35, 512, 0));
+        test_sequence_1.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
+
+        test_sequence[2] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_2 = test_sequence[2].createTrack();
+        test_sequence_2.add(MidiBuildEvent.createProgramChange(24, 0, 0));
+        test_sequence_2.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_2.add(MidiBuildEvent.createNoteOffEvent(35, 0, 0));
         
         //512 ticks per second with 0.5 second windows makes 4 windows in 1024 ticks
         double window_duration = 0.5;
         double window_overlap_offset = 0;
         double[] seconds_per_tick = MIDIMethods.getSecondsPerTick(sequence);
-        List<int[]> startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequence, 
+        List<int[]> startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequence,
                                                                             window_duration, 
                                                                            window_overlap_offset,
                                                                            seconds_per_tick);
@@ -75,7 +81,7 @@ public class MIDIMethodsTest {
                                                                 window_overlap_offset,
                                                                 start_ticks,
                                                                 end_ticks);
-        assertEquals(4, windows.length);
+        assertEquals(5, windows.length);
 
         window_duration = 1.0;
         window_overlap_offset = 0;
@@ -85,7 +91,7 @@ public class MIDIMethodsTest {
                                                                            seconds_per_tick);
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
-        Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, 1, 0, start_ticks, end_ticks);
+        Sequence[] windowed_sequences = MIDIMethods.breakSequenceIntoWindows(sequence, window_duration, window_overlap_offset, start_ticks, end_ticks);
         compareEventByteArrayTest(windowed_sequences,test_sequence);
         compareEventByteArrayTest(test_sequence,windowed_sequences);
 
@@ -96,7 +102,7 @@ public class MIDIMethodsTest {
         trackKeysig.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
         trackKeysig.add(MidiBuildEvent.createNoteOffEvent(35, 1024, 0));
         
-        Sequence[] test_sequence_key = new Sequence[2];
+        Sequence[] test_sequence_key = new Sequence[3];
         test_sequence_key[0] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_key_0 = test_sequence_key[0].createTrack();
         test_sequence_key_0.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
@@ -107,7 +113,13 @@ public class MIDIMethodsTest {
         Track test_sequence_key_1 = test_sequence_key[1].createTrack();
         test_sequence_key_1.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
         test_sequence_key_1.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
-        test_sequence_key_1.add(MidiBuildEvent.createNoteOffEvent(35, 512, 0));
+        test_sequence_key_1.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
+
+        test_sequence_key[2] = new Sequence(Sequence.PPQ, 256);
+        Track test_sequence_key_2 = test_sequence_key[2].createTrack();
+        test_sequence_key_2.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
+        test_sequence_key_2.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
+        test_sequence_key_2.add(MidiBuildEvent.createNoteOffEvent(35, 0, 0));
         
         window_duration = 1.0;
         window_overlap_offset = 0;
@@ -118,7 +130,7 @@ public class MIDIMethodsTest {
                                                                            seconds_per_tick);
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
-        Sequence[] windowed_sequences_key = MIDIMethods.breakSequenceIntoWindows(sequenceKeysig, 1, 0,start_ticks,end_ticks);
+        Sequence[] windowed_sequences_key = MIDIMethods.breakSequenceIntoWindows(sequenceKeysig, window_duration, window_overlap_offset,start_ticks,end_ticks);
         compareEventByteArrayTest(windowed_sequences_key,test_sequence_key);
         compareEventByteArrayTest(test_sequence_key,windowed_sequences_key);
         
@@ -137,8 +149,6 @@ public class MIDIMethodsTest {
         test_sequence_tempo_0.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
         test_sequence_tempo_0.add(MidiBuildEvent.createNoteOffEvent(35, 384, 0));
         
-        //Nothing ever happens in this sequence time range so it will be empty
-        //Special events will not get copied into it because it is unecessary
         test_sequence_tempo[1] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_tempo_1 = test_sequence_tempo[1].createTrack();
         test_sequence_tempo_1.add(MidiBuildEvent.createTrackTempo(90, 0));
@@ -156,12 +166,12 @@ public class MIDIMethodsTest {
         window_overlap_offset = 0;
         seconds_per_tick = MIDIMethods.getSecondsPerTick(sequenceTempo);
         startEndTickArrays = MIDIMethods.getStartEndTickArrays(sequenceTempo, 
-                                                                            window_duration, 
-                                                                           window_overlap_offset,
-                                                                           seconds_per_tick);
+                                                                window_duration, 
+                                                                window_overlap_offset,
+                                                                seconds_per_tick);
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
-        Sequence[] windowed_sequence_tempo = MIDIMethods.breakSequenceIntoWindows(sequenceTempo, 1, 0,start_ticks,end_ticks);
+        Sequence[] windowed_sequence_tempo = MIDIMethods.breakSequenceIntoWindows(sequenceTempo, window_duration, window_overlap_offset,start_ticks,end_ticks);
         assertEquals(3, windowed_sequence_tempo.length);
 
         compareEventByteArrayTest(windowed_sequence_tempo,test_sequence_tempo);
@@ -231,7 +241,7 @@ public class MIDIMethodsTest {
         Track trackOverlap = sequenceOverlap.createTrack();
         trackOverlap.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
         trackOverlap.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
-        trackOverlap.add(MidiBuildEvent.createNoteOffEvent(35, 1024, 0));
+        trackOverlap.add(MidiBuildEvent.createNoteOffEvent(35, 1023, 0));
 
         Sequence[] test_sequence_overlap = new Sequence[4];
         test_sequence_overlap[0] = new Sequence(Sequence.PPQ, 256);
@@ -250,15 +260,15 @@ public class MIDIMethodsTest {
         Track test_sequence_overlap_2 = test_sequence_overlap[2].createTrack();
         test_sequence_overlap_2.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
         test_sequence_overlap_2.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
-        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 510, 0));
+        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
         //Second one due to off by one in end tick array, does not change actual MIDI
-        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 510, 0));
+        test_sequence_overlap_2.add(MidiBuildEvent.createNoteOffEvent(35, 511, 0));
 
         test_sequence_overlap[3] = new Sequence(Sequence.PPQ, 256);
         Track test_sequence_overlap_3 = test_sequence_overlap[3].createTrack();
         test_sequence_overlap_3.add(MidiBuildEvent.createKeySignature("1s", "minor", 0));
         test_sequence_overlap_3.add(MidiBuildEvent.createNoteOnEvent(35, 0, 0));
-        test_sequence_overlap_3.add(MidiBuildEvent.createNoteOffEvent(35, 253, 0));
+        test_sequence_overlap_3.add(MidiBuildEvent.createNoteOffEvent(35, 255, 0));
 
         window_duration = 1.0;
         window_overlap_offset = 0.5;
@@ -269,7 +279,7 @@ public class MIDIMethodsTest {
                 seconds_per_tick);
         start_ticks = startEndTickArrays.get(0);
         end_ticks = startEndTickArrays.get(1);
-        Sequence[] windowed_sequences_overlap = MIDIMethods.breakSequenceIntoWindows(sequenceOverlap, 1, 0,start_ticks,end_ticks);
+        Sequence[] windowed_sequences_overlap = MIDIMethods.breakSequenceIntoWindows(sequenceOverlap, window_duration, window_overlap_offset,start_ticks,end_ticks);
         compareEventByteArrayTest(windowed_sequences_overlap,test_sequence_overlap);
         compareEventByteArrayTest(test_sequence_overlap,windowed_sequences_overlap);
     }
