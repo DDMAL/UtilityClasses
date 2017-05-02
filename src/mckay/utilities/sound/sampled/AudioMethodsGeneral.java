@@ -199,6 +199,8 @@ public class AudioMethodsGeneral
       * Returns information in <code>String</code> form regarding all available
       * system mixers. This information consists of mixer index, name, version,
       * vendor and description, in that order.
+	  * 
+	  * @return	Information about all available mixers.
       */
      public static String getAvailableMixerData()
      {
@@ -759,6 +761,7 @@ public class AudioMethodsGeneral
       *                       depths of 8 or 16 bits are accepted.
       * @param buffer         The buffer of bytes to write synthesized samples
       *                       to.
+	  * @throws Exception     An informative exception is thrown if a problem occurs.
       */
      public static void writeSamplesToBuffer( double[][] sample_values,
           int bit_depth,

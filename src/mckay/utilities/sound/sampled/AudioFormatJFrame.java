@@ -273,6 +273,9 @@ public class AudioFormatJFrame
       *
       * <p>This audio format is a typical format for use when recording
       * low-quality audio from a microphone.
+	  * 
+	  * @return	A new mono <code>AudioFormat</code> that uses an 8 kHz sampling
+      *			rate, a 8 bit bit-depth (signed) and big endian linear PCM encoding.
       */
      public static AudioFormat getStandardLowQualityRecordAudioFormat()
      {
@@ -281,12 +284,12 @@ public class AudioFormatJFrame
      
      
      /**
-      * Returns a new mono <code>AudioFormat</code> that uses an 8 kHz sampling
-      * rate, a 8 bit bit-depth (signed) and big endian linear PCM encoding.
+      * Returns a new mono <code>AudioFormat</code> that uses a 16 kHz sampling
+      * rate, a 16 bit bit-depth (signed) and big endian linear PCM encoding.
       *
-      * <p>This audio format is a typical format for use when recording
-      * low-quality audio from a microphone.
-      */
+ 	  * @return	A new mono <code>AudioFormat</code> that uses an 16 kHz sampling
+      *			rate, a 16 bit bit-depth (signed) and big endian linear PCM encoding.
+	  */
      public static AudioFormat getStandardMidQualityRecordAudioFormat()
      {
           return defineAudioFormat( 16000.0F, 16, 1, true, true );
@@ -298,8 +301,8 @@ public class AudioFormatJFrame
       * sampling rate, a 16 bit bit-depth (signed) and big endian linear PCM
       * encoding.
       *
-      * <p>This audio format is a typical format for use when recording low-quality audio
-      * from a microphone.
+ 	  * @return	A new mono <code>AudioFormat</code> that uses a 44.1 kHz sampling
+      *			rate, a 16 bit bit-depth (signed) and big endian linear PCM encoding.
       */
      public static AudioFormat getStandardHighQualityRecordAudioFormat()
      {

@@ -35,6 +35,7 @@ public class AudioMethodsPlayback
       *
       * @param	audio_input_stream The audio stream to be played.
       * @param	source_data_line   Where the samples are to be played to.
+	  * @return						The thread performing the playback.
       * @throws	Exception          Throws an exception if the
       *                            <code>AudioFormat</code> of the
       *                            audio_input_stream parameter does not match

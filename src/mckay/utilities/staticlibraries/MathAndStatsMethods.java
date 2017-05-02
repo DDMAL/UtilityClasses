@@ -175,7 +175,10 @@ public class MathAndStatsMethods
      
      /**
       * Returns the index of the entry of an array of doubles with the smallest
-      * value. The first occurence is returned in the case of a tie.
+      * value. The first occurrence is returned in the case of a tie.
+	  * 
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the smallest value.
       */
      public static int getIndexOfSmallest(double[] values)
      {
@@ -189,7 +192,10 @@ public class MathAndStatsMethods
      
      /**
       * Returns the index of the entry of an array of ints with the smallest
-      * value. The first occurence is returned in the case of a tie.
+      * value. The first occurrence is returned in the case of a tie.
+	  *		
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the smallest value.
       */
      public static int getIndexOfSmallest(int[] values)
      {
@@ -204,6 +210,9 @@ public class MathAndStatsMethods
      /**
       * Returns the index of the entry of an array of doubles that corresponds.
       * to the median entry. Returns -1 if a problem occurs.
+	  *		
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the median value.
       */
      public static int getIndexOfMedian(double[] values)
      {
@@ -227,7 +236,10 @@ public class MathAndStatsMethods
      
      /**
       * Returns the index of the entry of an array of floats with the largest
-      * value. The first occurence is returned in the case of a tie.
+      * value. The first occurrence is returned in the case of a tie.
+	  *		
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the largest value.
       */
      public static int getIndexOfLargest(float[] values)
      {
@@ -241,8 +253,11 @@ public class MathAndStatsMethods
      
      /**
       * Returns the index of the entry of an array of doubles with the largest
-      * value. The first occurence is returned in the case of a tie.
-      */
+      * value. The first occurrence is returned in the case of a tie.
+ 	  *		
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the largest value.
+     */
      public static int getIndexOfLargest(double[] values)
      {
           int max_index = 0;
@@ -254,9 +269,12 @@ public class MathAndStatsMethods
      
      
      /**
-      * Returns the index of the entry of an array of itegers with the largest
-      * value. The first occurence is returned in the case of a tie.
-      */
+      * Returns the index of the entry of an array of integers with the largest
+      * value. The first occurrence is returned in the case of a tie.
+ 	  *		
+	  * @param values	The array of values to search.
+	  * @return			The index of the entry of values with the largest value.
+     */
      public static int getIndexOfLargest(int[] values)
      {
           int max_index = 0;
@@ -310,6 +328,11 @@ public class MathAndStatsMethods
      /**
       * Returns the Euclidian distance between x and y. Throws an exception if x
       * and y have different sizes.
+	  * 
+	  * @param	x			The first vector.
+	  * @param	y			The second vector.
+	  * @return				The Euclidian distance between x and y.
+	  * @throws	Exception	Throws an exception if x and y are of different sizes.
       */
      public static double calculateEuclideanDistance(double[] x, double[] y)
      throws Exception
@@ -327,6 +350,9 @@ public class MathAndStatsMethods
      /**
       * Returns a random integer from 0 to max - 1, based on the uniform
       * distribution.
+	  * 
+	  * @param max	The non-inclusive ceiling for the random number.
+	  * @return		The random number.
       */
      public static int generateRandomNumber(int max)
      {
@@ -336,9 +362,13 @@ public class MathAndStatsMethods
      
      
      /**
-      * Returns an array <i>number_entries</i> arrays. Each entry has a value
+      * Returns an array of size <i>number_entries</i>. Each entry has a value
       * between 0 and <i>number_entries</i> - 1, and no numbers are repeated.
       * Ordering of numbers is random.
+	  * 
+	  * @param	number_entries	The size of the returned array, and the non-inclusive
+	  *							ceiling for its values.
+	  * @return					The randomly generated array.
       */
      public static int[] getRandomOrdering(int number_entries)
      {
@@ -362,6 +392,9 @@ public class MathAndStatsMethods
      /**
       * Returns the sum of the contents of all of the entries of the given
       * array.
+	  * 
+	  * @param	to_sum	The array whose contents are to be summed.
+	  *	@return			The resultant sum.
       */
      public static double getArraySum(double[] to_sum)
      {
@@ -406,6 +439,9 @@ public class MathAndStatsMethods
       * performed by row (i.e. the sum of each row (first indice) is one after
       * normalization). Each row is independant. The original array is not
       * altered.
+	  * 
+	  * @param to_normalize	The 2-D array to normalize.
+	  * @return				A normalized-by-row copy of to_normalize.
       */
      public static double[][] normalize(double[][] to_normalize)
      {
@@ -442,6 +478,9 @@ public class MathAndStatsMethods
       * Return a normalized copy of the the given array. Normalization is
       * performed overall so that the sum of all entries is 1.0. The original
       * array is not altered.
+	  * 
+	  * @param to_normalize	The 2-D array to normalize.
+	  * @return				A normalized copy of to_normalize.
       */
      public static double[][] normalizeEntirely(double[][] to_normalize)
      {
@@ -475,6 +514,7 @@ public class MathAndStatsMethods
       *
       * @param	a	The base.
       * @param	b	The exponent.
+	  * @return		The resultant value.
       */
      public static int pow(int a, int b)
      {
@@ -492,6 +532,7 @@ public class MathAndStatsMethods
       *
       * @param	x	The value to find the log of.
       * @param	n	The base of the logarithm.
+	  * @return		The resultant value.
       */
      public static double logBaseN(double x, double n)
      {
@@ -509,6 +550,7 @@ public class MathAndStatsMethods
       *
       * @param	x	The value to ensure is a power of n.
       * @param	n	The power to base x's validation on.
+	  * @return		The resultant value.
       */
      public static int ensureIsPowerOfN(int x, int n)
      {
@@ -559,6 +601,12 @@ public class MathAndStatsMethods
       * z denotes the possible multipliers to check for. True is returned
       * if x is either a factor of a multiple of y (and vice versa), and false
       * otherwise.
+	  * 
+	  * @param x	The value that may be a factor or multiple of y.
+	  * @param y	The value that x may be a factor or multiple of.
+	  * @param z	The possible multipliers to check.
+	  * @return		Whether or not x is either a factor of a multiple of y
+	  *				(and vice versa).
       */
      public static boolean isFactorOrMultiple(int x, int y, int[] z)
      {

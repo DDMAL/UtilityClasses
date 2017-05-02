@@ -50,7 +50,13 @@ public class StripedTableCellRenderer
      /**
       * Instantiates the StripedTableCellRenderer and stores the given
       * parameters.
-      */
+	  * 
+	  * @param	targetRenderer		The TableCellRenderer in question.
+	  * @param	evenBack			The evenBack color.
+	  * @param	evenFore			The evenFore color.
+	  * @param	oddBack				The oddBack color.
+	  * @param	oddFore				The oddFore color.
+	  */
      public StripedTableCellRenderer(TableCellRenderer targetRenderer,
           Color evenBack, Color evenFore,
           Color oddBack, Color oddFore)
@@ -110,6 +116,13 @@ public class StripedTableCellRenderer
      
      /**
       * Method to apply this renderer to single column.
+	  * 
+	  * @param	table		The JTable containing the column.
+	  * @param	columnIndex	The index of the column to apply this to.
+	  * @param	evenBack	The evenBack color.
+	  * @param	evenFore	The evenFore color.
+	  * @param	oddBack		The oddBack color.
+	  * @param	oddFore		The oddFore color.
       */
      public static void installInColumn(JTable table, int columnIndex,
           Color evenBack, Color evenFore,
@@ -129,7 +142,13 @@ public class StripedTableCellRenderer
      
      /**
       * Method to apply this renderer to an entire table.
-      */
+ 	  * 
+	  * @param	table		The JTable to affect.
+	  * @param	evenBack	The evenBack color.
+	  * @param	evenFore	The evenFore color.
+	  * @param	oddBack		The oddBack color.
+	  * @param	oddFore		The oddFore color.
+	  */
      public static void installInTable(JTable table,
           Color evenBack, Color evenFore,
           Color oddBack, Color oddFore)

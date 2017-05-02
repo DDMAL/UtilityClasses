@@ -173,6 +173,8 @@ public class AudioMethodsRecording
           /**
            * Returns the stream of recorded data. Note that stream is set to 
            * null if no data has been recorded yet.
+		   * 
+		   * @return The stream of encoded data.
            */
           public ByteArrayOutputStream getRecordedData()
           {
@@ -181,6 +183,8 @@ public class AudioMethodsRecording
           
           /**
            * Returns the <code>AudioFormat</code> that was used for recording.
+		   * 
+		   * @return The <code>AudioFormat</code> that was used for recording.
            */
           public AudioFormat getFormatUsedForRecording()
           {

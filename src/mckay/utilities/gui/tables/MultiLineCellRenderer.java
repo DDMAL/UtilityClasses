@@ -236,6 +236,11 @@ public class MultiLineCellRenderer
      /**
       * Configures a label for one line of the cell. This can be overridden by
       * derived classes.
+	  * 
+	  * @param l				The JLabel to configure.
+	  * @param value			The text value to label l with.
+	  * @param lineNumber		The line number.
+	  * @param cellForeground	The foreground color of the cell.
       */
      protected void setValue(JLabel l, Object value, int lineNumber,
           Color cellForeground)

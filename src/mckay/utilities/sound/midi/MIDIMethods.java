@@ -365,7 +365,7 @@ public class MIDIMethods
       * @param seconds_per_tick number of seconds per tick for the given original_sequence
       * @return a list of int[] where list.get(0) will return startTicks[] and
       *         list.get(1) will return endTicks[]
-      * @throws Exception 
+      * @throws Exception	Throws an informative exception if a problem occurs.
       */
      public static List<int[]> getStartEndTickArrays(Sequence original_sequence,
                                                         double window_duration,
@@ -425,6 +425,7 @@ public class MIDIMethods
       * once if we do not have window overlap offset since each event occurs in exactly
       * one window.
       * @param thisEvent the event to be added to the sequence
+	  * @param window_overlap_offset the window offset (left here for convenience)
       * @param sequence_index the current sequence index before this function call
       * @param startTick the start of this event
       * @param track_index the track index that the current event was taken from

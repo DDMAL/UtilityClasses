@@ -85,7 +85,7 @@ public class StringMethods
      /**
       * Prints each entry of the given string array to standard out on a
       * different line. Each line is numbered by its corresponding array
-      * index, and is contained in >< markers.
+      * index, and is contained in {@literal >}{@literal <} markers.
       *
       * @param test_strings   The array of strings to pring.
       */

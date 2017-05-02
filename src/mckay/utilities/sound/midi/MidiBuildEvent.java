@@ -29,14 +29,11 @@ public class 	MidiBuildEvent {
 	 * Creates a MIDI meta message for time signature and key mode given the MEI
 	 * attributes meter.count = meterCount and meter.unit = meterUnit.
 	 *
-	 * @param meterCount
-	 *            metercount attribute from mei
-	 * @param meterUnit
-	 *            meterunit attribute from mei
-	 * @param lTick
-	 *            tick placement of this key signature
-	 * @return the appropriate time signature midi meta message
-	 * @throws InvalidMidiDataException
+	 * @param meterCount	metercount attribute from mei
+	 * @param meterUnit		meterunit attribute from mei
+	 * @param lTick			Tick placement of this key signature
+	 * @return				The appropriate time signature midi meta message
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createTimeSignature(String meterCount, String meterUnit,
 												long lTick) throws InvalidMidiDataException {
@@ -85,7 +82,7 @@ public class 	MidiBuildEvent {
 	 * @param lTick
 	 *            tick placement of this key signature
 	 * @return the appropriate key signature midi meta message
-	 * @throws InvalidMidiDataException
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createKeySignature(String keysig, String quality,
 			long lTick) throws InvalidMidiDataException {
@@ -126,7 +123,7 @@ public class 	MidiBuildEvent {
 	 * @param lTick tick at which this program change occurs
 	 * @param nChannel channel in which this program change occurs
 	 * @return the appropriate program change midi event
-	 * @throws InvalidMidiDataException
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createProgramChange(int pEvent, long lTick,
 			int nChannel) throws InvalidMidiDataException {
@@ -143,7 +140,7 @@ public class 	MidiBuildEvent {
 	 * @param bpm beats per minute integer value that track tempo is changing to
 	 * @param lTick midi tick at which this track tempo changes
 	 * @return the appropriate midi event track tempo meta message
-	 * @throws InvalidMidiDataException
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createTrackTempo(int bpm, long lTick)
 			throws InvalidMidiDataException {
@@ -195,6 +192,7 @@ public class 	MidiBuildEvent {
 	 * @param lTick tick at which midi note occurs
 	 * @param nChannel channel on which midi note occurs
 	 * @return appropriate note on midi event 
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createNoteOnEvent(int nPitch, long lTick,
 			int nChannel) throws InvalidMidiDataException {
@@ -210,6 +208,7 @@ public class 	MidiBuildEvent {
 	 * @param nChannel channel on which midi note occurs
 	 * @param vel velocity of the note on event to be created
 	 * @return appropriate note on midi event
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createNoteOnEventVel(int nPitch, long lTick,
 												 int nChannel, int vel) throws InvalidMidiDataException {
@@ -223,6 +222,7 @@ public class 	MidiBuildEvent {
 	 * @param lTick tick at which midi note occurs
 	 * @param nChannel channel on which midi note occurs
 	 * @return appropriate note off midi event
+	 * @throws InvalidMidiDataException	Throws an exception if the MIDI is invalid.
 	 */
 	public static MidiEvent createNoteOffEvent(int nPitch, long lTick,
 			int nChannel) throws InvalidMidiDataException {

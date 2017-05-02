@@ -263,6 +263,7 @@ public class AudioMethodsSynthesis
       *                                 to generate audio.
       * @return				The code corresponding to the given type 
       *                                 of synthesis.
+	  * @throws Exception	An informative exception is thrown if a problem occurs.
       */
      public static int getSynthesisTypeCode(String synthesis_type_name)
      throws Exception

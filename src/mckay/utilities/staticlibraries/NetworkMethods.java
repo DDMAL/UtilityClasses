@@ -39,7 +39,6 @@ public class NetworkMethods
 	 *								adds the question mark to the request, so it
 	 *								should not be present here. No parameters
 	 *								are used if this string is null or empty.
-	 *								e.g. "param1=val1&param2=val2"
 	 * @return						The response from the server. Null is
 	 *								returned if the specified url_to_access
 	 *								does not begin with "http://".
@@ -158,9 +157,9 @@ public class NetworkMethods
 	 * Pipes data from the specified reader to the specified writer via a
 	 * buffer.
 	 *
-	 * @param reader	The reader to pipe data from.
-	 * @param writer	The writer to pipe data to.
-	 * @throws java.io.IOException
+	 * @param reader				The reader to pipe data from.
+	 * @param writer				The writer to pipe data to.
+	 * @throws java.io.IOException	Throws an exception if a problem occurs.
 	 */
 	public static void pipe(Reader reader, Writer writer)
 			throws IOException

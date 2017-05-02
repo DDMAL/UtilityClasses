@@ -1,8 +1,6 @@
-==================================================================================
- UtilityClasses 4.0
-==================================================================================
- by Cory McKay
- Copyright (C) 2016 (GNU GPL)
+# UtilityClasses 4.0
+by Cory McKay
+Copyright (C) 2017 (GNU GPL)
 
 
 ### OVERVIEW
@@ -13,7 +11,7 @@ executable components.
 
 UtilityClasses was developed as part of the jMIR music classification
 research software suite, and may be used either as part of this suite or
-independently.
+may be incorporated into other software projects independently.
 
 
 ### GETTING MORE INFORMATION
@@ -34,13 +32,13 @@ This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with 
-this program; if not, write to the Free Software Foundation, Inc., 675 
-Mass Ave, Cambridge, MA 02139, USA.
+You may obtain a copy of the GNU General Public License by writing to the Free
+Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 The UtilityClasses software makes use of the Yahoo! SDK to submit queries to
 the Yahoo! engine. This SDK comes with a BSD license. Queries submitted to
-Yahoo's Web Services must comply with Yahoo!'s terms of service, available at http://docs.yahoo.com/info/terms. 
+Yahoo's Web Services must comply with Yahoo!'s terms of service, available at
+http://docs.yahoo.com/info/terms. 
 
 
 ### COMPATIBILITY
@@ -72,14 +70,26 @@ When the JRE download is complete, follow the installation instructions that
 come with it in order to install it.
 
 
+### INSTALLING UtilityClasses
+
+The UtilityClasses software is available at http://jmir.sourceforge.net. It is 
+delivered in a zipped file, from which UtilityClasses can be extracted using any
+of a variety of dearchiving utilities (e.g. ZipGenius).
+
+Two directories are contained in the zipped distribution file:
+
+- ThirdPartyJars: Contains the distributable third party software used by 
+jSymbolic and its associated jMIR projects.
+- UtilityClasses: The UtilityClasses source code, presented in the form of a
+NettBeans project.
+
+
 ### UPDATES SINCE VERSION 1.0
 
 UtilityClasses 4.0
 - Various bug fixes
-- Various new functionality
-
-UtilityClasses 3.2
-- Addition of various methods (no changes to existing functionality)
+- Substantial new miscellaneous methods (no changes to existing functionality)
+- Updates to code documentation
 
 UtilityClasses 3.1:
 - mckay.utilities.webservices.ProxyServerAccessor.ProxyServerAccessor

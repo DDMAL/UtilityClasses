@@ -42,12 +42,12 @@ public class HTMLWriter
       *
       * <p>The escape characters converted are:
       *
-      * <li> <
-      * <li> >
-      * <li> "
-      * <li> '
-      * <li> \
-      * <li> &
+      * {@literal <}<br>
+      * {@literal >}<br>
+      * {@literal "}<br>
+      * {@literal '}<br>
+      * {@literal \}<br>
+      * {@literal &}<br>
       *
       * @param to_convert     The text to convert. <b>IMPORTANT:</b> This text
       *                       must not include HTML tags, as they will be
@@ -88,12 +88,12 @@ public class HTMLWriter
       *
       * <p>The escape characters converted are:
       *
-      * <li> <
-      * <li> >
-      * <li> "
-      * <li> '
-      * <li> \
-      * <li> &
+       * {@literal <}<br>
+      * {@literal >}<br>
+      * {@literal "}<br>
+      * {@literal '}<br>
+      * {@literal \}<br>
+      * {@literal &}<br>
       *
       * @param to_convert     The text to convert. <b>IMPORTANT:</b> This text
       *                       must not include HTML tags, as they will be
