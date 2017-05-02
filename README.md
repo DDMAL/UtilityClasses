@@ -72,16 +72,31 @@ come with it in order to install it.
 
 ### INSTALLING UtilityClasses
 
-The UtilityClasses software is available at http://jmir.sourceforge.net. It is 
-delivered in a zipped file, from which UtilityClasses can be extracted using any
-of a variety of dearchiving utilities (e.g. ZipGenius).
+The project can be accessed at http://jmir.sourceforge.net. This distribution
+includes a pre-compiled Jar file, the source code and extensive documentation. 
+All of this is delivered in a zipped file, from which the project files can be
+extracted.
 
-Two directories are contained in the zipped distribution file:
+Two directories are contained in the distribution zip file:
 
-- ThirdPartyJars: Contains the distributable third party software used by 
-jSymbolic and its associated jMIR projects.
-- UtilityClasses: The UtilityClasses source code, presented in the form of a
-NettBeans project.
+- Third-Party-Jars: Contains the distributable third-party software used by 
+the project. These need to be included in the UtilityClasses build (in the
+NetBeans context, this means adding the jar files found here as libraries).
+- UtilityClasses: The UtilityClasses project, presented in the form of a
+NetBeans project. Contains the following directories and files:
+	- dist: Contains a pre-compiled UtilityClasses.jar file (and associated
+	libraries) for direct inclusion in other projects.
+	- javadoc: Javadoc documentation for the project source code.
+	- licenses: Licenses associated with the project and its dependencies.
+	- nbproject: NetBeans project files. This is only relevant to those
+	wishing to use the software in a NetBeans IDE context; it is certainly
+	possible to use the software in other development environments as well.
+	- src: The project's source code.
+	- test: The project's unit testing code.
+	- manifest.mf: The manifest used when building the project Jar file.
+	- nbbuild.xml: NetBeans build instructions. Only relevant if using the
+	NetBeans IDE.
+	- README.md: Basic overall documentation of the project.
 
 
 ### UPDATES SINCE VERSION 1.0
