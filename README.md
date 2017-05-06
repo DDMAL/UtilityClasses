@@ -19,7 +19,7 @@ may be incorporated into other software projects independently.
 More information on jMIR is available at http://jmir.sourceforge.net.
 
 Please contact Cory McKay (cory.mckay@mail.mcgill.ca) with any bug reports
-or questions relating to UtilityClasses. 
+or questions relating to the software. 
 
 
 ### LICENSING AND LIABILITY
@@ -62,7 +62,7 @@ properly.
 
 If your system already has the JRE installed, as will most typically be the
 case, you may skip this section. If not, you will need to install the JRE in
-order to run jSymbolic. The JRE can be downloaded for free from the Java web
+order to run this project. The JRE can be downloaded for free from the Java web
 site. The JDK typically includes the JRE, or the JRE can simply be installed
 alone.
 
