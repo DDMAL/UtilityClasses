@@ -1,4 +1,4 @@
-# UtilityClasses 4.0
+# UtilityClasses 4.1
 by Cory McKay
 Copyright (C) 2017 (GNU GPL)
 
@@ -100,6 +100,9 @@ NetBeans project. Contains the following directories and files:
 
 
 ### UPDATES SINCE VERSION 1.0
+
+UtilityClasses 4.1
+- Added new static statistics methods to MathAndStatsMethods
 
 UtilityClasses 4.0
 - Various bug fixes
