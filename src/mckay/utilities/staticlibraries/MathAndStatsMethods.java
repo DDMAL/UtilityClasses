@@ -2,7 +2,7 @@
  * MathAndStatsMethods.java
  * Version 4.1
  *
- * Last modified on September 21, 2017.
+ * Last modified on January 22, 2018.
  * CIRMMT, Marianopolis College, McGill University and University of Waikato
  */
 
@@ -305,6 +305,57 @@ public class MathAndStatsMethods
 
 	
 	/**
+	 * Returns the index of the entry of an array of integers with the second largest value. The second 
+	 * occurrence of the largest value is returned in the case of a tie.
+	 *
+	 * @param	values	The array of values to search.
+	 * @return			The index of the entry of values with the second largest value.
+	 */
+	public static int getIndexOfSecondLargest(double[] values)
+	{
+		int max_index = getIndexOfLargest(values);
+				
+		int second_max_index = 0;
+		for (int i = 0; i < values.length; i++)
+			if (i != max_index)
+				if (values[i] > values[second_max_index])
+					second_max_index = i;
+		
+		return second_max_index;
+	}
+
+	
+	/**
+	 * Given the values histogram, find the number of bins separating the the first bin with a frequency 
+	 * greater than 0 and the last bin with a frequency greater than 0.
+	 * 
+	 * @param	values	A histogram, where each array entry corresponds to a different bin, and its value
+	 *					corresponds to the frequency of that bin.
+	 * @return			The range in number of bins separating the the first bin with a frequency greater than
+	 *					0 and the last bin with a frequency greater than 0. If no bins or only one bin has a
+	 *					frequency greater than 0, then 0 is returned.
+	 */
+	public static int getHistogramRangeInBins(double[] values)
+	{
+		// Find the lowest and highest non-zero entries
+		int lowest = values.length;
+		int highest = -1;
+		for (int bin = 0; bin < values.length; bin++)
+		{
+			if (values[bin] > 0.0 && lowest == values.length)
+				lowest = bin;
+			if (values[bin] > 0.0)
+				highest = bin;
+		}
+
+		// Calculate the number of bins separating the highest and lowest values
+		if (lowest == values.length || highest == -1)
+			return 0;
+		else return highest - lowest;
+	}
+	
+		
+	/**
 	 * Returns the index of the earliest entry in an array that holds the median value of all the values in
 	 * the array. Returns -1 if a problem occurs.
 	 *
@@ -338,11 +389,14 @@ public class MathAndStatsMethods
 	 * Returns the median value in the the given array.
 	 * 
 	 * @param	values	The data for which the median is to be found.
-	 * @return			The value of the median. -1 if values consists of less than 1 entries or if a problem
-	 *					occurs.
+	 * @return			The value of the median. 0 if data consists of less than 1 entries. -1 if a problem
+	 *					occurs. 
 	 */
 	public static double getMedianValue(double[] values)
 	{
+		if (values.length < 1)
+			return 0;
+
 		int index_of_median = getIndexOfMedian(values);
 		
 		if (index_of_median == -1)
@@ -359,10 +413,14 @@ public class MathAndStatsMethods
 	 * 
 	 * @param	values	The data for which the mode is to be found.
 	 * @return			The most commonly occurring value found in the values array. In the case of a tie, the
-	 *					value that occurs first in the values array is returned.
+	 *					value that occurs first in the values array is returned. 0 if data consists of less 
+	 *					than 1 entries.
 	 */
 	public static double getModeAverageValue(double[] values)
 	{
+		if (values.length < 1)
+			return 0;
+
 		int max_count = 0;
 		double max_value = 0.0;
 		
@@ -390,10 +448,14 @@ public class MathAndStatsMethods
 	 * 
 	 * @param	values	The data for which the mode is to be found.
 	 * @return			The most commonly occurring value found in the values array. In the case of a tie, the
-	 *					value that occurs first in the values array is returned.
+	 *					value that occurs first in the values array is returned. 0 if data consists of less 
+	 *					than 1 entries.
 	 */
 	public static int getModeAverageValue(int[] values)
 	{
+		if (values.length < 1)
+			return 0;
+
 		int max_count = 0;
 		int max_value = 0;
 		
