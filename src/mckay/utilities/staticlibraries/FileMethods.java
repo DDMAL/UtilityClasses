@@ -345,7 +345,10 @@ public class FileMethods
       * @param filter                   A filter controlling what files are
       *                                 elligible to be returned. A value of
       *                                 null means all files found will be
-      *                                 returned.
+      *                                 returned. Note that this filter
+	  *									could potentially cause directories
+	  *									that do not meet its requirements to
+	  *									not be returned.
       * @param results                  Used internally for recursive calls.
       *                                 Pass null when calling this method
       *                                 externally.

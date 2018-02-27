@@ -1,7 +1,7 @@
 /*
  * StringMethods.java
  *
- * Last modified on May 19, 2016.
+ * Last modified on February 21, 2018.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -222,7 +222,90 @@ public class StringMethods
           return tokens;
      }
      
-     
+	 
+	 /**
+	  * Find all the unique strings in the given array_to_check, and return each one. Duplicate strings are
+	  * removed, of course.
+	  * 
+	  * @param array_to_check	The array to check for unique strings.
+	  * @return					An array with one entry for each unique string in array_to_check. Each entry
+	  *							specifies one of the unique strings. Returns null if arrays_to_check is null 
+	  *							or empty.
+	  */
+	 public static  String[] getUniqueStrings(String[] array_to_check)
+	 {
+		 // Verify array_to_check not null or empty
+		 if ( array_to_check == null || array_to_check.length == 0 )
+			 return null;
+		 
+		 // A map of unique strings in the input array to the number of times they each occur in the array
+		 HashMap<String,Integer> unique_strings_found = getMappedCountsOfUniqueStrings(array_to_check);
+		 
+		 // Return the unique strings found in array_to_check
+		 return unique_strings_found.keySet().toArray(new String[unique_strings_found.size()]);
+	 }
+
+	 
+	 /**
+	  * Find all the unique strings in the given array_to_check, and count how often each one occurs.
+	  * 
+	  * @param array_to_check	The array to check for unique strings.
+	  * @return					An array with one entry for each unique string in array_to_check. Each entry
+	  *							specifies a count of how many times that unique string occurs in
+	  *							array_to_check. Returns null if arrays_to_check is null or empty.
+	  */
+	 public static  int[] getCountsOfUniqueStrings(String[] array_to_check)
+	 {
+		 // Verify array_to_check not null or empty
+		 if ( array_to_check == null || array_to_check.length == 0 )
+			 return null;
+		 
+		 // A map of unique strings in the input array to the number of times they each occur in the array
+		 HashMap<String,Integer> unique_strings_found = getMappedCountsOfUniqueStrings(array_to_check);
+		 
+		 // Construct an array containing counts for each unique mapping
+		 int[] counts = new int[unique_strings_found.size()];
+		 int i = 0;
+		 for (String key : unique_strings_found.keySet())
+		 {
+			 counts[i] = unique_strings_found.get(key);
+			 i++;
+		 }
+
+		 // Return the results
+		 return counts;
+	 }
+	 
+
+	 /**
+	  * Find all the unique strings in the given array_to_check, and count how often each one occurs.
+	  * 
+	  * @param array_to_check	The array to check for unique strings.
+	  * @return					A HashMap mapping each unique string in array_to_check to a count of how many
+	  *							times that unique string occurs in array_to_check. There is one mapping for
+	  *							each unique string. Returns null if arrays_to_check is null or empty.
+	  */
+	 public static HashMap<String,Integer> getMappedCountsOfUniqueStrings(String[] array_to_check)
+	 {
+		 // Verify array_to_check not null or empty
+		 if ( array_to_check == null || array_to_check.length == 0 )
+			 return null;
+		 
+		 // A map of unique strings in the input array to the number of times they each occur in the array
+		 HashMap<String,Integer> unique_strings_found = new HashMap<>();
+		 for (int i = 0; i < array_to_check.length; i++)
+		 {
+			 int count = 1;
+			 if(unique_strings_found.containsKey(array_to_check[i]))
+				 count = 1 + unique_strings_found.get(array_to_check[i]);
+			 unique_strings_found.put(array_to_check[i], count);
+		 }
+		 
+		 // Return the results
+		 return unique_strings_found;
+	 }
+	 
+	 
      /**
       * Checks to see if a given string is the same as an entry in the given
       * array.
@@ -401,9 +484,9 @@ public class StringMethods
 
 	 /**
       * Returns true if the two given arrays contain exactly the same strings,
-      * but in any order in the array. Returns false if this is not the case
-      * (i.e. if either of the arrays contains a string that the other does
-      * not).
+      * but in any order or multiplicity in the array. Returns false if this 
+	  * is not the case (i.e. if either of the arrays contains a string that 
+	  * the other does not).
       *
       * @param array1    The array to compare with array2.
       * @param array2    The array to compare with array1.
@@ -420,8 +503,8 @@ public class StringMethods
                for (int j = 0; j < array2.length; j++)
                     if (array1[i].equals(array2[j]))
                     {
-                    found = true;
-                    j = array2.length;
+						found = true;
+						j = array2.length;
                     }
                if (!found)
                     return false;
