@@ -988,6 +988,23 @@ public class StringMethods
      }
      
      
+	/**
+	 * Returns a copy of the provided to_parse file name or path with the file extension (if any) removed. An
+	 * extension here is defined as all characters from the final period on in the given to_parse.
+	 * 
+	 * @param to_parse	The file name or path to remove the extension from. This string is left unchanged by
+	 *					this method. May not be null.
+	 * @return			to_parse with the extension (including the period) removed. A copy of to_parse is
+	 *					returned if there is no extension.
+	 */
+	public static String removeExtension2(String to_parse)
+	{
+		int period_index = to_parse.lastIndexOf('.');
+		if (period_index == -1) return new String(to_parse);
+		else return to_parse.substring(0, period_index);
+	}
+	
+	
      /**
       * Returns a copy of the given string with the extension removed. Returns
       * null if there is no extension or if there are less than five characters
@@ -999,7 +1016,9 @@ public class StringMethods
       * @param	filename The name of the file from which the extension is to be
       *                  removed.
       * @return          The name of the file with the extension removed.
-      */
+ 	  * @deprecated      Use removeExtension2 instead.
+     */
+	 @Deprecated
      public static String removeExtension(String filename)
      {
           if (filename.length() < 5)
@@ -1016,6 +1035,24 @@ public class StringMethods
      }
      
      
+	/**
+	 * Returns a string holding the file extension of the specified file name or path. An extension here is
+	 * defined as all characters from the final period on in the given to_parse.
+	 * 
+	 * @param	to_parse	The file name or path. This string is left unchanged by this method. May not be
+	 *						null.
+	 * @return				The extension of to_parse (including the period). An empty string is returned if
+	 *						there is no extension.
+	 */
+	public static String getExtension2(String to_parse)
+	{
+		String extension = "";
+		int period_index = to_parse.lastIndexOf('.');
+		if (period_index >= 0) extension = to_parse.substring(period_index);
+		return extension;
+	}
+
+	
      /**
       * Returns the 2, 3 or 4 letter extension of the given file name. Returns
       * null if there is no extension or if there are less than 4 characters in
@@ -1027,8 +1064,10 @@ public class StringMethods
       * @param	filename The name of the file from which the extension is to be
       *                  returned.
       * @return          The extension of the file (including the period).
+  	  * @deprecated      Use getExtension2 instead.
       */
-     public static String getExtension(String filename)
+     @Deprecated
+	 public static String getExtension(String filename)
      {
           if (filename.length() < 5)
                return null;
@@ -1044,7 +1083,27 @@ public class StringMethods
      }
      
      
-     /**
+	/**
+	 * Returns a copy of the given file name or path with its original extension stripped away and replaced by
+	 * the new specified extension.
+	 *
+	 * @param filename_or_path	The name of the file name or path that is to have its extension replaced. May
+	 *							not be null.
+	 * @param new_extension		The replacement extension (including the period). May not be null.
+	 * @return					A copy of the file name or path with the new extension replacing the old. If
+	 *							filename_or_path does not have an extension, new_extension is simply appended
+	 *							to it.
+	 */
+	public static String replaceExtension2(String filename_or_path, String new_extension)
+	{
+		String new_string = filename_or_path;
+		if (!getExtension2(filename_or_path).equals(""))
+			new_string = removeExtension2(filename_or_path);
+		return new_string + new_extension;
+	}
+
+	 
+	 /**
       * Returns a copy of the given file name with its original extension
       * stripped away and replaced by the new specified extension.
       *
@@ -1053,15 +1112,69 @@ public class StringMethods
       * @param new_extension  The replacement extension, NOT including the
       *                       period.
       * @return               The file name with the new extension.
+	  * @deprecated           Use replaceExtension2 instead.
       */
-     public static String replaceExtension(String filename, String new_extension)
+     @Deprecated
+	 public static String replaceExtension(String filename, String new_extension)
      {
           String new_string = filename;
           if (getExtension(filename) != null)
                new_string = removeExtension(filename);
           return new_string + "." + new_extension;
      }
-     
+	 
+	 
+	/**
+	 * Checks if the specified filename_or_path ends with the specified file_extension. If it does, then
+	 * return a reference to it unchanged (upper and lower case are considered to be equal for the purposes of
+	 * this check). If filename_or_path does not already contain this extensions, then return a reference to a
+	 * new string with file_extension (preceded by a period) added to the end of filename_or_path (if there is
+	 * no previously existing extension, then file_extension is simply appended to filename_or_path, and if
+	 * there is a non-matching previously existing extension, then it is replaced by file_extension).
+	 *
+	 * @param filename_or_path	The file name (or path) to check.
+	 * @param file_extension	The file extension to check filename_or_path for. This file_extension should
+	 *							not include a period.
+	 * @return					filename_or_path with the proper extension added to it (if it is not there 
+	 *							already).
+	 */
+	public static String correctExtension(String filename_or_path, String file_extension)
+	{
+		String file_name_with_extension_added = filename_or_path + "." + file_extension;
+		
+		if (!filename_or_path.contains("."))
+			return file_name_with_extension_added;
+
+		String[] split_file_name = filename_or_path.split("\\.");
+		if (split_file_name[split_file_name.length - 1].equalsIgnoreCase(file_extension))
+			return filename_or_path;
+		else return file_name_with_extension_added;
+	}
+	 
+	 
+	/**
+	 * Returns a copy of the to_append_to file name or path with the to_append text added to the end of the
+	 * file name or path (but before its extension, if any). For example, a to_append_to value of foo.bar and
+	 * a to_append value of beep would result in foobeep.bar being returned. An extension here is defined as
+	 * all characters from the final period on in the given to_parse.
+	 *
+	 * @param to_append_to	The file name or path to append to_append onto. This string is left unchanged by
+	 *						this method.
+	 * @param to_append		The text to append to to_append_to, before its extension, if any. No change is
+	 *						performed if this is null.
+	 * @return				to_append_to with to_append appended to its end, before its extension (if any).
+	 */
+	public static String appendToFilePathBeforeExtension(String to_append_to, String to_append)
+	{
+		if (to_append == null) return new String(to_append_to);
+
+		String extension = getExtension2(to_append_to);
+		String to_append_to_no_extension = removeExtension2(to_append_to);
+		to_append_to_no_extension += to_append;
+		to_append_to_no_extension += extension;
+		return to_append_to_no_extension;
+	}
+	 
 	 
 	 /**
 	  * Get a string describing the number of minutes, hours, seconds and milliseconds

@@ -788,8 +788,8 @@ public class HTMLWriter
      public static String getFrameSubdirectoryPath(String root_path)
      throws Exception
      {
-          String root_path_no_extension = StringMethods.removeExtension(root_path);
-          if (root_path_no_extension == null)
+          String root_path_no_extension = StringMethods.removeExtension2(root_path);
+          if (root_path_no_extension.equals(root_path))
                throw new Exception("Root file must have an extension.");
           String subdirectory_path = root_path_no_extension + "_documents";
           return subdirectory_path;

@@ -334,6 +334,22 @@ public class FileMethods
           return true;
      }
 
+	 
+	/**
+	 * Given a path, return true if a file (or other resource) at the corresponding path exists, and
+	 * false if it does not.
+	 *
+	 * @param path_to_check	The path to check.
+	 * @return				True if a resource exists at path_to_check, false if it does not.
+	 */
+	public static boolean pathExists(String path_to_check)
+	{
+		String absolute_path = (new File(path_to_check)).getAbsolutePath();
+		String path_string = absolute_path.substring(0, absolute_path.lastIndexOf(File.separator));
+		Path path = Paths.get(path_string);
+		return Files.exists(path);
+	}	 
+	 
 
      /**
       * Returns all files meeting the requirements of the given filter in the
@@ -510,6 +526,27 @@ public class FileMethods
 	 
 	 
 	 /**
+	  * Populate a list of all empty folders and sub-folders found in the specified directory.
+	  * 
+	  * @param directory			The directory to check to see if it or any of its sub-folders are empty.
+	  * @param empty_directories	The list of empty directories found. Should typically be empty when
+	  *								passed to this method, and will be populated if empty directories are
+	  *								found. If none are found, will be left unchanged.
+	  */
+	 public static void getEmptyDirectoryPaths(File directory, ArrayList<String> empty_directories)
+	 {
+		 File[] contents = directory.listFiles();
+		 if (contents.length == 0)
+			 empty_directories.add(directory.getAbsolutePath());
+		 else for (int i = 0; i < contents.length; i++)
+		 {
+			 if (contents[i].isDirectory())
+				 getEmptyDirectoryPaths(contents[i], empty_directories);
+		 }
+	 }
+	 
+	 
+	 /**
  	  * Creates a directory if it does not already exist at the given path. If a
 	  * non-directory file exists at the given path, then delete it. If a directory
 	  * already exists at the given path, then do nothing.
@@ -676,7 +713,7 @@ public class FileMethods
 		for (int i = 0; i < paths_to_copy_to.length; i++)
 		{
 			String formatted_number = String.format("%06d", (i+1));
-			String extension = StringMethods.getExtension(files_to_copy[i].getAbsolutePath());
+			String extension = StringMethods.getExtension2(files_to_copy[i].getAbsolutePath());
 			paths_to_copy_to[i] = (new File(paths_to_copy_to[i])).getParent() + File.separator + new_base_name + formatted_number + extension;
 		}
 		
