@@ -1,8 +1,8 @@
 /*
  * FileMethods.java
- * Version 3.2
+ * Version 3.2.1
  *
- * Last modified on March 1, 2016.
+ * Last modified on March 24, 2018.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -299,8 +299,8 @@ public class FileMethods
 
           return true;
      }
-
-
+	 
+	 
      /**
       * Tests the given File to see if it is a valid directory.
       *
@@ -635,7 +635,34 @@ public class FileMethods
      }
 
 
-     /**
+ 	 /**
+	  * Delete the specified file if it exists, is not a directory and has write access.
+	  * 
+	  * @param file	The file to delete
+	  * @return		Whether or not the file was delted.
+	  */
+	 public static boolean deleteFileIfItExists(File file)
+	 {
+		 // Check if the file exists, is a file (not a directory)and has write access
+		 boolean delete_it = false;
+		 try
+		 {
+			 validateFile(file, false, true); 
+			 delete_it = true;
+		 }
+		 catch (Exception e) {}
+		 
+		 // Delete the file
+		 if (delete_it) file.delete();
+		 
+		 // Return whether the file was deleted
+		 if (delete_it && !file.exists())
+			 return true;
+		 else return false;
+	 }
+
+
+    /**
       * Copies the contents of one file to another.
       * Throws an exception if the destination file already exists
       * or if the original file does not exist.

@@ -1,7 +1,7 @@
 /*
  * StringMethods.java
  *
- * Last modified on February 21, 2018.
+ * Last modified on March 26, 2019.
  * Marianopolis College, McGill University and University of Waikato
  */
 
@@ -11,9 +11,11 @@ import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +24,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-
 
 /**
  * A holder class for static methods relating to strings.
@@ -1267,13 +1268,14 @@ public class StringMethods
      /**
       * Returns a formatted version of <i>number_to_round</i> that has been
       * converted to scientific notation and includes the given number
-      * of <i>significant_digits</i>.
+      * of <i>significant_digits</i>. Always formats it to use a period 
+	  * decimal delimiter rather than a comma period delimiter
       *
       * <p>Values of not a number, negative infinity and positive infinity will
       * be returned as NaN, -Infinity and Infinity respectively.
       *
       * @param	number_to_round		The number that is to be formatted.
-      * @param	significant_digits	The number of significant digits to use.
+      * @param	significant_digits	The maximum number of significant digits to use.
       * @return                         The formatted string.
       */
      public static String getDoubleInScientificNotation(double number_to_round,
@@ -1292,7 +1294,11 @@ public class StringMethods
           format_pattern += "E0";
           DecimalFormat formatter = new DecimalFormat(format_pattern);
           
-          return formatter.format(number_to_round);
+		  String formatted_number = formatter.format(number_to_round);
+		  
+		  formatted_number = formatted_number.replace(',', '.');
+		  
+          return formatted_number;
      }
      
      
@@ -1322,6 +1328,31 @@ public class StringMethods
           DecimalFormat formatter = new DecimalFormat(format_pattern);
           return formatter.format(number);
      }
+	 
+	 
+	 /**
+	  * Returns a String representing the given number where US
+	  * number formatting conventions are used. This means that
+	  * a period decimal delimiter will always be used, which is
+	  * important for CSV files (given that the alternative is a
+	  * comma). Also ensures that there is no grouping delimiter
+	  * (e.g. no comma thousand marker) and that the maximum 
+	  * number of fraction digits is 20.
+	  * 
+	  * @param number	The number to format so as to be CSV
+	  *					compatible.
+	  * @return			A String formatting of number, with a
+	  *					period decimal delimiter, no grouping
+	  *					delimiter and a maximum of 20 decimal
+	  *					digits.
+	  */
+	 public static String getCsvCompatibleDouble(double number)
+	 {
+		 NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
+		 nf.setGroupingUsed(false);
+		 nf.setMaximumFractionDigits(20);
+		 return nf.format(number);
+	 }
      
      
      /**
@@ -1382,7 +1413,7 @@ public class StringMethods
 	 * using UTF-8 character encoding, with the one difference that an empty string is returned if the
 	 * <i>to_encode</i> string is null.
 	 *
-	 * @param to_encode	The string to encode.
+	 * @param to_encode		The string to encode.
 	 * @return				The results of the encoding, or "" if the input to the method is null.
 	 * @throws Exception	An exception is thrown if a problem occurs.
 	 */
