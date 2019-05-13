@@ -354,6 +354,23 @@ public class MathAndStatsMethods
 		else return highest - lowest;
 	}
 	
+	
+	/**
+	 * Returns the index of the first bin of histogram where at least the specified fraction of the combined
+	 * histogram frequencies lie to the left of that bin.
+	 * 
+	 * @param histogram		A histogram where each entry indicates the magnitude of the given bin's frequency. 
+	 *						Should typically be normalized, but does not have to be.
+	 * @param threshold		The fraction (0 to 1) of the combined histogram frequencies that must lie to the
+	 *						left of the returned bin.
+	 * @return				The index of the first bin where the specified threshold of the histogram lies to
+	 *						the left of that bin.
+	 */
+	public static int getIndexOfCumulativeThreshold(double[] histogram, double threshold)
+	{
+		
+	}
+	
 		
 	/**
 	 * Returns the index of the earliest entry in an array that holds the median value of all the values in
@@ -701,6 +718,33 @@ public class MathAndStatsMethods
 		return getSampleExcessKurtosis(copy);
 	}
 
+
+	/**
+	 * Find all peaks in the given histogram meeting the specified criteria. The minimum requirement of a peak
+	 * is that it must have a bin frequency that is higher than the bin frequencies of its adjacent bins.
+	 * 
+	 * @param histogram				A histogram where each entry indicates the magnitude of the given bin's
+	 *								frequency. Should typically be normalized, but does not have to be.
+	 * @param count_edges			Whether the first and last bins can count as peaks.
+	 * @param floor_value			The minimum value a bin frequency may have in order to be eligible to
+	 *								qualify as a peak. 0 should be chosen if there is no floor.
+	 * @param min_bin_separation	The minimum number of bins that must separate two bins for them both to
+	 *								qualify as a peak. For example, two adjacent bins have a bin separation of
+	 *								0. If this minimum is not met, then only the bin with the higher frequency
+	 *								is counted as a peak. 1 should be chosen if there is no minimum.
+	 * @return						The indexes of all qualifying peaks in histogram. Null should be returned
+	 *								if there are no peaks (e.g. if histogram is empty, if it contains bins
+	 *								of all the same frequency, if none of the requirements are fulfilled,
+	 *								etc.).
+	 */
+	public static int[] findPeaks( double[] histogram,
+	                               boolean count_edges,
+								   double floor_value,
+								   int min_bin_separation )
+	{
+		
+	}
+	
 
 	/**
 	 * Generate a table with rows (first index) corresponding to the bins of the given histogram. Table
