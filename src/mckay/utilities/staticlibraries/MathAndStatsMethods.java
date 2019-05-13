@@ -364,7 +364,7 @@ public class MathAndStatsMethods
 	 * @param threshold		The fraction (0 to 1) of the combined histogram frequencies that must lie to the
 	 *						left of the returned bin.
 	 * @return				The index of the first bin where the specified threshold of the histogram lies to
-	 *						the left of that bin.
+	 *						the left of that bin. Returns -1 if no index can be found.
 	 */
 	public static int getIndexOfCumulativeThreshold(double[] histogram, double threshold)
 	{
@@ -379,7 +379,7 @@ public class MathAndStatsMethods
 				return bin;
 		}
         
-        return 0;
+        return -1;
 	}
 	
 		
@@ -778,7 +778,7 @@ public class MathAndStatsMethods
 					}
                     
                     // Disqualify first and last bins if edges are not to be counted
-                    if (!(count_edges) && (bin == 0 || bin == histogram.length))
+                    if (!(count_edges) && (bin == 0 || bin == (histogram.length - 1)))
                         is_peak_at_index = false;
 				
 					is_peak_at_indices[bin] = is_peak_at_index;
@@ -806,7 +806,7 @@ public class MathAndStatsMethods
     
     
     /**
-	 * Find the width of each pitch in a histogram. The width of a peak is the total number of bins to the
+	 * Find the width of each peak in a histogram. The width of a peak is the total number of bins to the
      * left and right, combined, that one can go before encountering a bin where the histogram frequency goes
      * up.
 	 * 
@@ -820,7 +820,7 @@ public class MathAndStatsMethods
 	 *								0. If this minimum is not met, then only the bin with the higher frequency
 	 *								is counted as a peak. 1 should be chosen if there is no minimum.
 	 * @return						The widths of each peak in the histogram found by findPeaks. Null is 
-     *                              returned if the histogram is null.
+     *                              returned if the histogram is null or if there are no peaks.
 	 */
     public static int[] findPeakWidths( double[] histogram,
                                         boolean count_edges,
