@@ -368,7 +368,18 @@ public class MathAndStatsMethods
 	 */
 	public static int getIndexOfCumulativeThreshold(double[] histogram, double threshold)
 	{
-		
+		double accumulating_sum = 0.0;
+        double total_sum = getArraySum(histogram);
+        
+		for (int bin = 0; bin < histogram.length; bin++)
+		{
+            accumulating_sum += histogram[bin];
+            
+			if ((accumulating_sum / total_sum) > threshold)
+				return bin;
+		}
+        
+        return 0;
 	}
 	
 		
@@ -742,8 +753,94 @@ public class MathAndStatsMethods
 								   double floor_value,
 								   int min_bin_separation )
 	{
+		// Count the number of peaks for the purpose of creating an array of that length
+		int number_of_peaks = 0;
+		boolean[] is_peak_at_indices = new boolean[histogram.length];
+	    
+		if (histogram != null)
+		{
+			for (int bin = 0; bin < histogram.length; bin++)
+			{
+				// Check if bin frequency meets the minimum value to qualify as a peak
+				if (histogram[bin] >= floor_value)
+				{
+					boolean is_peak_at_index = true;
+                    
+                    // Compare value at bin to those of the adacent bins
+					for (int i = bin - min_bin_separation; i < bin + min_bin_separation; i++)
+					{
+						if (i < 0 || i > histogram.length) {} // Do nothing if index is out of bounds
+                        else if (histogram[bin] <= histogram[i] && i != bin)
+						{
+							is_peak_at_index = false;
+							break;
+						}
+					}
+                    
+                    // Disqualify first and last bins if edges are not to be counted
+                    if (!(count_edges) && (bin == 0 || bin == histogram.length))
+                        is_peak_at_index = false;
+				
+					is_peak_at_indices[bin] = is_peak_at_index;
+					if (is_peak_at_indices[bin]) number_of_peaks++;
+				}	
+			}
+		}
 		
+		if (number_of_peaks != 0)
+		{
+			// Build an array containing the indices at which there are peaks in the histogram
+			int count = 0;
+			int[] peak_indices = new int[number_of_peaks];
+			for (int i = 0; i < is_peak_at_indices.length; i++)
+				if (is_peak_at_indices[i])
+				{
+					peak_indices[count] = i;
+					count++;
+				}
+
+			return peak_indices;
+		}
+		else return null;
 	}
+    
+    
+    /**
+	 * Find the width of each pitch in a histogram. The width of a peak is the total number of bins to the
+     * left and right, combined, that one can go before encountering a bin where the histogram frequency goes
+     * up.
+	 * 
+	 * @param histogram				A histogram where each entry indicates the magnitude of the given bin's
+	 *								frequency. Should typically be normalized, but does not have to be.
+	 * @param count_edges			Whether the first and last bins can count as peaks.
+	 * @param floor_value			The minimum value a bin frequency may have in order to be eligible to
+	 *								qualify as a peak. 0 should be chosen if there is no floor.
+	 * @param min_bin_separation	The minimum number of bins that must separate two bins for them both to
+	 *								qualify as a peak. For example, two adjacent bins have a bin separation of
+	 *								0. If this minimum is not met, then only the bin with the higher frequency
+	 *								is counted as a peak. 1 should be chosen if there is no minimum.
+	 * @return						The widths of each peak in the histogram found by findPeaks. Null is 
+     *                              returned if the histogram is null.
+	 */
+    public static int[] findPeakWidths( double[] histogram,
+                                        boolean count_edges,
+                                        double floor_value,
+                                        int min_bin_separation)
+    {
+        int[] peaks = findPeaks(histogram, count_edges, floor_value, min_bin_separation);
+        int[] widths_of_peaks = new int[peaks.length];
+        
+        for (int i = 0; i < widths_of_peaks.length; i++)
+        {
+            if (i == 0 && widths_of_peaks.length == 1) { widths_of_peaks[i] = histogram.length; }
+            else if (i == 0) { widths_of_peaks[i] = peaks[i + 1]; }
+            else if (i == widths_of_peaks.length) { widths_of_peaks[i] = histogram.length - peaks[i - 1]; }
+            else { widths_of_peaks[i] = peaks[i + 1] - peaks[i - 1]; }
+        }
+        
+        if (histogram == null) { return null; }
+        else { return widths_of_peaks; }
+    }
 	
 
 	/**
