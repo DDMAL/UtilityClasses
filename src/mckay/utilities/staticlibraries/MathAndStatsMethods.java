@@ -767,9 +767,9 @@ public class MathAndStatsMethods
 					boolean is_peak_at_index = true;
                     
                     // Compare value at bin to those of the adacent bins
-					for (int i = bin - min_bin_separation; i < bin + min_bin_separation; i++)
+					for (int i = bin - min_bin_separation; i < bin + min_bin_separation + 1; i++)
 					{
-						if (i < 0 || i > histogram.length) {} // Do nothing if index is out of bounds
+						if (i < 0 || i >= histogram.length) {} // Do nothing if index is out of bounds
                         else if (histogram[bin] <= histogram[i] && i != bin)
 						{
 							is_peak_at_index = false;
@@ -828,19 +828,136 @@ public class MathAndStatsMethods
                                         int min_bin_separation)
     {
         int[] peaks = findPeaks(histogram, count_edges, floor_value, min_bin_separation);
+		if (peaks == null) { return null; } // Prevent null pointers
+		
         int[] widths_of_peaks = new int[peaks.length];
         
         for (int i = 0; i < widths_of_peaks.length; i++)
         {
-            if (i == 0 && widths_of_peaks.length == 1) { widths_of_peaks[i] = histogram.length; }
-            else if (i == 0) { widths_of_peaks[i] = peaks[i + 1]; }
-            else if (i == widths_of_peaks.length) { widths_of_peaks[i] = histogram.length - peaks[i - 1]; }
-            else { widths_of_peaks[i] = peaks[i + 1] - peaks[i - 1]; }
+			int left_bound = peaks[i];
+			int right_bound = peaks[i];
+			
+			// Find the left bound of the peak's width
+			while (left_bound > 0)
+			{
+				if (left_bound - 1 < 0) { break; }
+				else if (histogram[left_bound] > histogram[left_bound - 1]) { left_bound--; }
+				else break;
+			}
+			
+			// Find the right bound of the peak's width
+			while (right_bound < histogram.length)
+			{
+				if (right_bound + 1 >= histogram.length) { break; }
+				else if (histogram[right_bound] > histogram[right_bound + 1]) { right_bound++; }
+				else break;
+			}
+			
+			widths_of_peaks[i] = right_bound - left_bound;
         }
         
-        if (histogram == null) { return null; }
-        else { return widths_of_peaks; }
+        return widths_of_peaks;
     }
+	
+	/**
+	 *	The following was used to test findPeaks() and findPeakWidths()...
+	 * 
+		double[] histogram_1 = {3, 4, 5, 6, 7, 8, 9, 10, 8, 9};
+		double[] histogram_2 = {1, 2, 1, 2, 1, 2};
+		double[] histogram_3 = {0, 3, 6, 3, 1, 2, 5, 1, 3};
+		double[] histogram_4 = {1, 2, 5, 3, 0, 7, 18, 1, 17};
+		double[] histogram_5 = {};
+		double[] histogram_6 = {7, 7, 7, 7, 7, 7, 7};
+		double[] histogram_7 = {10, 5, 4, 3, 1, 3, 4, 5, 10};
+		double[] histogram_8 = {4, 3, 1, 3, 5, 8, 5, 1, 3, 10};
+		
+		
+		System.out.println("1. Normal case with right edge peak, test floor_value");
+		System.out.println("findPeaks:");
+		int[] peaks_1 = MathAndStatsMethods.findPeaks(histogram_1, true, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_1));
+		peaks_1 = MathAndStatsMethods.findPeaks(histogram_1, true, 10.0, 1);
+		System.out.println(Arrays.toString(peaks_1));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_1, true, 0.0, 1)));
+		
+		
+		System.out.println("2. Oscillating case with right edge peak, test min_bin_separation");
+		System.out.println("findPeaks:");
+		int[] peaks_2 = MathAndStatsMethods.findPeaks(histogram_2, true, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_2));
+		peaks_2 = MathAndStatsMethods.findPeaks(histogram_2, true, 0.0, 2);
+		System.out.println(Arrays.toString(peaks_2));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_2, true, 0.0, 1)));
+		
+		
+		System.out.println("3. Normal case with right edge peak, test floor_value");
+		System.out.println("findPeaks:");
+		int[] peaks_3 = MathAndStatsMethods.findPeaks(histogram_3, true, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_3));
+		peaks_3 = MathAndStatsMethods.findPeaks(histogram_3, false, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_3));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_3, true, 0.0, 1)));
+		
+		
+		System.out.println("4. Normal case with right edge peak, test floor_value");
+		System.out.println("findPeaks:");
+		int[] peaks_4 = MathAndStatsMethods.findPeaks(histogram_4, true, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_4));
+		peaks_4 = MathAndStatsMethods.findPeaks(histogram_4, true, 6.0, 1);
+		System.out.println(Arrays.toString(peaks_4));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_4, true, 0.0, 1)));
+		
+		
+		System.out.println("5. Empty histogram; null expected");
+		System.out.println("findPeaks:");
+		int[] peaks_5 = MathAndStatsMethods.findPeaks(histogram_5, true, 0.0, 1);
+		try 
+		{
+			System.out.println(Arrays.toString(peaks_5));
+		
+		} catch (NullPointerException e)
+		{
+			System.out.println("Null!");
+		}
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_5, true, 0.0, 1)));
+		
+		
+		System.out.println("6. All same values; null expected");
+		System.out.println("findPeaks:");
+		int[] peaks_6 = MathAndStatsMethods.findPeaks(histogram_6, true, 0.0, 1);
+		try 
+		{
+			System.out.println(Arrays.toString(peaks_6));
+		} catch (NullPointerException e)
+		{
+			System.out.println("Null!");
+		}
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_6, true, 0.0, 1)));
+		
+		
+		System.out.println("7. Only edge peaks");
+		System.out.println("findPeaks:");
+		int[] peaks_7 = MathAndStatsMethods.findPeaks(histogram_7, true, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_7));
+		peaks_7 = MathAndStatsMethods.findPeaks(histogram_7, false, 0.0, 1);
+		System.out.println(Arrays.toString(peaks_7));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_7, true, 0.0, 1)));
+		
+		
+		System.out.println("8. Histogram changes direction but does not result in a new peak");
+		System.out.println("findPeaks:");
+		int[] peaks_8 = MathAndStatsMethods.findPeaks(histogram_8, true, 6.0, 1);
+		System.out.println(Arrays.toString(peaks_8));
+		System.out.println("findPeakWidths:");
+		System.out.println(Arrays.toString(MathAndStatsMethods.findPeakWidths(histogram_8, true, 6.0, 1)));
+	 */
 	
 
 	/**
