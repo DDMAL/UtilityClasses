@@ -225,4 +225,62 @@ public class MiscellaneousMethods
 			return null;
 		}
 	}
+	
+	
+	/**
+	 * Convert a MIDI number (0 - 127) representing a pitch to the name for that pitch (pitch class and 
+	 * octave). If the integer passed as parameter is not a valid MIDI pitch, then an empty string is
+	 * returned. This method is principally for debugging purposes, making printed pitches readable for 
+	 * comparison with scores displayed by music notation software such as MuseScore, Sibelius, etc.
+	 *
+	 * @param	midi_pitch	The MIDI pitch number to convert
+	 * @return				The pitch represented as a string
+	 */
+	public static String midiPitchToPitch(int midi_pitch)
+	{
+		// Initialize empty string
+		String pitch = "";
+
+		// Verify that parameter is a valid MIDI pitch
+		if (midi_pitch >= 0 && midi_pitch <= 127)
+		{
+			// Get pitch class
+			int pitch_class = midi_pitch % 12;
+			switch (pitch_class)
+			{
+				case(0): pitch += "C"; break;
+				case(1): pitch += "Db"; break;
+				case(2): pitch += "D"; break;
+				case(3): pitch += "Eb"; break;
+				case(4): pitch += "E"; break;
+				case(5): pitch += "F"; break;
+				case(6): pitch += "Gb"; break;
+				case(7): pitch += "G"; break;
+				case(8): pitch += "Ab"; break;
+				case(9): pitch += "A"; break;
+				case(10): pitch += "Bb"; break;
+				case(11): pitch += "B"; break;
+			}
+
+			// Get octave number
+			int octave = midi_pitch / 12;
+			switch (octave)
+			{
+				case(0): pitch += "-1"; break;
+				case(1): pitch += "0"; break;
+				case(2): pitch += "1"; break;
+				case(3): pitch += "2"; break;
+				case(4): pitch += "3"; break;
+				case(5): pitch += "4"; break;
+				case(6): pitch += "5"; break;
+				case(7): pitch += "6"; break;
+				case(8): pitch += "7"; break;
+				case(9): pitch += "8"; break;
+				case(10): pitch += "9"; break;
+				case(11): pitch += "10"; break;
+			}
+		}
+		
+		return pitch;
+	}
 }
