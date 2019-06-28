@@ -305,7 +305,7 @@ public class MathAndStatsMethods
 
 	
 	/**
-	 * Returns the index of the entry of an array of integers with the second largest value. The second 
+	 * Returns the index of the entry of an array of doubles with the second largest value. The second 
 	 * occurrence of the largest value is returned in the case of a tie.
 	 *
 	 * @param	values	The array of values to search.
@@ -314,8 +314,11 @@ public class MathAndStatsMethods
 	public static int getIndexOfSecondLargest(double[] values)
 	{
 		int max_index = getIndexOfLargest(values);
-				
-		int second_max_index = 0;
+		
+		int second_max_index;
+		if (max_index == 0) second_max_index = 1;
+		else second_max_index = 0;
+		
 		for (int i = 0; i < values.length; i++)
 			if (i != max_index)
 				if (values[i] > values[second_max_index])
