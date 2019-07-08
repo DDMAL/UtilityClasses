@@ -326,7 +326,61 @@ public class MathAndStatsMethods
 		
 		return second_max_index;
 	}
-
+	
+	
+	/**
+	 * Returns the indices of the row and the column of the entry in a 2-dimensional array of doubles with the 
+	 * largest value. The first occurrence (by row, then by column) of the largest value is returned in case 
+	 * of a tie.
+	 * 
+	 * @param	values	The array of values to search
+	 * @return			The indices of the entry with the largest value in an array. The first index
+	 *					corresponds to the row number and the second index corresponds to the column number.
+	 */
+	public static int[] getIndicesOfLargest(double[][] values)
+	{
+		int[] max_indices = new int[2];
+		max_indices[0] = 0;
+		max_indices[1] = 0;
+		
+		for (int i = 0; i < values.length; i++)
+			for (int j = 0; j < values[i].length; j++)
+				if (values[i][j] > values[max_indices[0]][max_indices[1]])
+				{
+					max_indices[0] = i;
+					max_indices[1] = j;
+				}
+		
+		return max_indices;
+	}
+	
+	
+	/**
+	 * Returns the indices of the row and the column of the entry in a 2-dimensional array of doubles with the 
+	 * smallest value. The first occurrence (by row, then by column) of the smallest value is returned in case 
+	 * of a tie.
+	 * 
+	 * @param	values	The array of values to search
+	 * @return			The indices of the entry with the smallest value in an array. The first index
+	 *					corresponds to the row number and the second index corresponds to the column number.
+	 */
+	public static int[] getIndicesOfSmallest(double[][] values)
+	{
+		int[] min_indices = new int[2];
+		min_indices[0] = 0;
+		min_indices[1] = 0;
+		
+		for (int i = 0; i < values.length; i++)
+			for (int j = 0; j < values[i].length; j++)
+				if (values[i][j] < values[min_indices[0]][min_indices[1]])
+				{
+					min_indices[0] = i;
+					min_indices[1] = j;
+				}
+		
+		return min_indices;
+	}
+	
 	
 	/**
 	 * Given the values histogram, find the number of bins separating the the first bin with a frequency 
