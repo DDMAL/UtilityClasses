@@ -9,6 +9,7 @@
 package mckay.utilities.staticlibraries;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  * A holder class for static methods relating to statistical and mathematical analysis.
@@ -316,7 +317,7 @@ public class MathAndStatsMethods
 		int max_index = getIndexOfLargest(values);
 		
 		int second_max_index;
-		if (max_index == 0) second_max_index = 1;
+		if (max_index == 0 && values.length > 1) second_max_index = 1;
 		else second_max_index = 0;
 		
 		for (int i = 0; i < values.length; i++)
@@ -785,8 +786,8 @@ public class MathAndStatsMethods
 		
 		return getSampleExcessKurtosis(copy);
 	}
-
-
+	
+	
 	/**
 	 * Find all peaks in the given histogram meeting the specified criteria. The minimum requirement of a peak
 	 * is that it must have a bin frequency that is higher than the bin frequencies of its adjacent bins.
