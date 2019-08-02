@@ -225,4 +225,55 @@ public class MiscellaneousMethods
 			return null;
 		}
 	}
+	
+	
+	/**
+	 * This method returns an integer representing the generic interval that corresponds to the given number
+	 * of semitones. A generic interval is the number of scale steps between notes of a scale. If the given 
+	 * number of semitones is greater than 21 (i.e. there is no widely used generic interval to express this 
+	 * interval,) then a value of 128 is returned. 
+	 * 
+	 * @param	number_of_semitones		The number of semitones that the interval spans.
+	 * @return							The number representing the generic interval that corresponds to the 
+	 *									given number of semitones.
+	 */
+	public static int semitonesToGenericInterval(int number_of_semitones)
+	{
+		int generic_interval;
+		
+		switch (Math.abs(number_of_semitones))
+		{
+			// Assign a value for the generic interval based on the given number of semitones
+			case(0): generic_interval = 1; break;
+			case(1): generic_interval = 2; break;
+			case(2): generic_interval = 2; break;
+			case(3): generic_interval = 3; break;
+			case(4): generic_interval = 3; break;
+			case(5): generic_interval = 4; break;
+			case(6): generic_interval = 4; break;
+			case(7): generic_interval = 5; break;
+			case(8): generic_interval = 6; break;
+			case(9): generic_interval = 6; break;
+			case(10): generic_interval = 7; break;
+			case(11): generic_interval = 7; break;
+			case(12): generic_interval = 8; break;
+			case(13): generic_interval = 9; break;
+			case(14): generic_interval = 9; break;
+			case(15): generic_interval = 10; break;
+			case(16): generic_interval = 10; break;
+			case(17): generic_interval = 11; break;
+			case(18): generic_interval = 11; break;
+			case(19): generic_interval = 12; break;
+			case(20): generic_interval = 13; break;
+			case(21): generic_interval = 13; break;
+			
+			// If the interval is greater than 21 semitones, then the method will return 128
+			default: return 128;
+		}
+		
+		if (number_of_semitones < 0) 
+			generic_interval = generic_interval * -1;
+		
+		return generic_interval;
+	}
 }
