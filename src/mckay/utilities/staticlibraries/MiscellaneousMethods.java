@@ -228,20 +228,28 @@ public class MiscellaneousMethods
 	
 	
 	/**
-	 * This method returns an integer representing the generic interval that corresponds to the given number
-	 * of semitones. A generic interval is the number of scale steps between notes of a scale. If the given 
-	 * number of semitones is greater than 21 (i.e. there is no widely used generic interval to express this 
-	 * interval,) then a value of 128 is returned. 
+	 * Returns an integer representing the generic interval corresponding to a given specific interval. A
+	 * generic interval is the number of scale steps between the notes of a scale, and the specific interval
+	 * is, for these purposes, the number of semitones separating the two notes. It is assumed that the scale
+	 * under consideration obeys Myhill's property (i.e. there are exactly two specific intervals for every
+	 * generic interval).
 	 * 
-	 * @param	number_of_semitones		The number of semitones that the interval spans.
+	 * @param	specific_interval		The number of semitones that a pitch interval between two notes spans.
+	 *									This value should be positive for a rising interval and negative for a 
+	 *									falling interval.
 	 * @return							The number representing the generic interval that corresponds to the 
-	 *									given number of semitones.
+	 *									given specific interval. In this particular case, a general interval 
+	 *									is understood to allow octave expansions, meaning that generic values 
+	 *									larger than an octave are permitted. However, if the specific interval 
+	 *									is greater than 21, then a value of 128 is returned. The returned
+	 *									value will be positive for a rising interval and negative for a 
+	 *									falling interval.
 	 */
-	public static int semitonesToGenericInterval(int number_of_semitones)
+	public static int semitonesToGenericInterval(int specific_interval)
 	{
 		int generic_interval;
 		
-		switch (Math.abs(number_of_semitones))
+		switch (Math.abs(specific_interval))
 		{
 			// Assign a value for the generic interval based on the given number of semitones
 			case(0): generic_interval = 1; break;
@@ -271,7 +279,7 @@ public class MiscellaneousMethods
 			default: return 128;
 		}
 		
-		if (number_of_semitones < 0) 
+		if (specific_interval < 0) 
 			generic_interval = generic_interval * -1;
 		
 		return generic_interval;

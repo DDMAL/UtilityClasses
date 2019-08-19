@@ -248,13 +248,16 @@ public class ArrayMethods
 	 * @param values_to_check	The array of values to be checked.
 	 * @param value				Value that each element of values_to_check will be compared to.
 	 * @return					True if all elements of values_to_check are equal to value, otherwise false.
-	 *							False if values_to_check is null.
+	 *							False if values_to_check is null or if values_to_check is size 0.
 	 */
 	public static boolean doesArrayContainOnlyThisValue(short[] values_to_check, int value)
 	{
 		if (values_to_check == null)
 			return false;
 
+		if (values_to_check.length == 0)
+			return false;
+		
 		for (int i = 0; i < values_to_check.length; i++)
 			if (values_to_check[i] != value)
 				return false;
@@ -269,13 +272,16 @@ public class ArrayMethods
 	 * @param values_to_check	The array of values to be checked.
 	 * @param value				Value that each element of values_to_check will be compared to.
 	 * @return					True if all elements of values_to_check are equal to value, otherwise false.
-	 *							False if values_to_check is null.
+	 *							False if values_to_check is null or if values_to_check is size 0.
 	 */
 	public static boolean doesArrayContainOnlyThisValue(double[] values_to_check, double value)
 	{
 		if (values_to_check == null)
 			return false;
 
+		if (values_to_check.length == 0)
+			return false;
+		
 		for (int i = 0; i < values_to_check.length; i++)
 			if (values_to_check[i] != value)
 				return false;

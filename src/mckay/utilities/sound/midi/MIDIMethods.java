@@ -708,14 +708,12 @@ public class MIDIMethods
      }
 	 
 	 
-	 /**
-	 * Convert a MIDI number (0 - 127) representing a pitch to the name for that pitch (pitch class and 
-	 * octave). If the integer passed as parameter is not a valid MIDI pitch, then an empty string is
-	 * returned. This method is principally for debugging purposes, making printed pitches readable for 
-	 * comparison with scores displayed by music notation software such as MuseScore and Sibelius.
+	/**
+	 * Convert a MIDI pitch number (0 to 127) to the name of that pitch (pitch class and octave). If the
+	 * integer passed as parameter is not a valid MIDI pitch, then an empty string is returned.
 	 *
-	 * @param	midi_pitch	The MIDI pitch number to convert
-	 * @return				The pitch represented as a string
+	 * @param	midi_pitch	The MIDI pitch number to convert.
+	 * @return				The pitch represented as a pitch class and octave String.
 	 */
 	public static String midiPitchToPitch(int midi_pitch)
 	{
@@ -730,16 +728,16 @@ public class MIDIMethods
 			switch (pitch_class)
 			{
 				case(0): pitch += "C"; break;
-				case(1): pitch += "Db"; break;
+				case(1): pitch += "C#/Db"; break;
 				case(2): pitch += "D"; break;
-				case(3): pitch += "Eb"; break;
+				case(3): pitch += "D#/Eb"; break;
 				case(4): pitch += "E"; break;
 				case(5): pitch += "F"; break;
-				case(6): pitch += "Gb"; break;
+				case(6): pitch += "F#/Gb"; break;
 				case(7): pitch += "G"; break;
-				case(8): pitch += "Ab"; break;
+				case(8): pitch += "G#/Ab"; break;
 				case(9): pitch += "A"; break;
-				case(10): pitch += "Bb"; break;
+				case(10): pitch += "A#/Bb"; break;
 				case(11): pitch += "B"; break;
 			}
 

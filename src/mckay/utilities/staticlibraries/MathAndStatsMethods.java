@@ -9,7 +9,6 @@
 package mckay.utilities.staticlibraries;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 
 /**
  * A holder class for static methods relating to statistical and mathematical analysis.
@@ -330,13 +329,13 @@ public class MathAndStatsMethods
 	
 	
 	/**
-	 * Returns the indices of the row and the column of the entry in a 2-dimensional array of doubles with the 
-	 * largest value. The first occurrence (by row, then by column) of the largest value is returned in case 
-	 * of a tie.
+	 * Returns the indices of the entry of the given array with the highest value.
 	 * 
-	 * @param	values	The array of values to search
-	 * @return			The indices of the entry with the largest value in an array. The first index
-	 *					corresponds to the row number and the second index corresponds to the column number.
+	 * @param	values	The 2-D array of values to search, where the first dimension is the row and the second
+	 *					is the column. Must not be null.
+	 * @return			A 1-D array of size 2, whose values respectively indicate the row and column of the
+	 *					values array with the highest value. In the case of a tie, the first occurrence found
+	 *					scanning by rows is reported.
 	 */
 	public static int[] getIndicesOfLargest(double[][] values)
 	{
@@ -357,13 +356,13 @@ public class MathAndStatsMethods
 	
 	
 	/**
-	 * Returns the indices of the row and the column of the entry in a 2-dimensional array of doubles with the 
-	 * smallest value. The first occurrence (by row, then by column) of the smallest value is returned in case 
-	 * of a tie.
+	 * Returns the indices of the entry of the given array with the lowest value.
 	 * 
-	 * @param	values	The array of values to search
-	 * @return			The indices of the entry with the smallest value in an array. The first index
-	 *					corresponds to the row number and the second index corresponds to the column number.
+	 * @param	values	The 2-D array of values to search, where the first dimension is the row and the second
+	 *					is the column. Must not be null.
+	 * @return			A 1-D array of size 2, whose values respectively indicate the row and column of the
+	 *					values array with the lowest value. In the case of a tie, the first occurrence found
+	 *					scanning by rows is reported.
 	 */
 	public static int[] getIndicesOfSmallest(double[][] values)
 	{
