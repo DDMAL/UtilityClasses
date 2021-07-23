@@ -179,7 +179,7 @@ public class GoogleWebSearch
                
                // Store the number of hits
                if (number_hits != null)
-                    number_hits[0] = new Integer(query_results.getEstimatedTotalResultsCount()).toString();
+                    number_hits[0] = Integer.valueOf(query_results.getEstimatedTotalResultsCount()).toString();
                
                // Store the query used
                if (query_used != null)

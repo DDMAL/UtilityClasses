@@ -388,7 +388,7 @@ public class MIDIMethods
           double total_seconds_accumulated_so_far = 0.0;
           while (total_seconds_accumulated_so_far <= total_duration && this_tick < seconds_per_tick.length)
           {
-               window_start_ticks_list.add(new Integer(this_tick));
+               window_start_ticks_list.add(this_tick);
                double seconds_accumulated_so_far = 0.0;
                while (seconds_accumulated_so_far < window_duration && this_tick < seconds_per_tick.length)
                {
@@ -400,7 +400,7 @@ public class MIDIMethods
                             found_next_tick = true;
                     }
                }
-               window_end_ticks_list.add(new Integer(this_tick - 1));
+               window_end_ticks_list.add(this_tick - 1);
                if (found_next_tick)
                     this_tick = tick_of_next_beginning;
                found_next_tick = false;

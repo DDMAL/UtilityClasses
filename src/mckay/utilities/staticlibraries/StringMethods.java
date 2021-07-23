@@ -591,12 +591,12 @@ public class StringMethods
 			 if(indexes_found.containsKey(array_to_check[i]))
 			 {
 				 ArrayList<Integer> existing_array = indexes_found.get(array_to_check[i]);
-				 existing_array.add(new Integer(i));
+				 existing_array.add(i);
 			 }
 			 else
 			 {
 				 ArrayList<Integer> new_array = new ArrayList<>();
-				 new_array.add(new Integer(i));
+				 new_array.add(i);
 				 indexes_found.put(array_to_check[i], new_array);
 			 }
 		 }

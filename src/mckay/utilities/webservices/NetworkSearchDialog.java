@@ -733,7 +733,7 @@ public class NetworkSearchDialog
           suppress_adult_content_checkbox = new JCheckBox("Suppress adult content");
           Integer[] permitted_number_of_results = new Integer[100];
           for (int i = 0; i < permitted_number_of_results.length; i++)
-               permitted_number_of_results[i] = new Integer(i + 1);
+               permitted_number_of_results[i] = i + 1;
           max_results_combobox = new JComboBox(permitted_number_of_results);
           JPanel max_results_panel = getLabeledContainer( "Maximum results returned:",
                max_results_combobox,

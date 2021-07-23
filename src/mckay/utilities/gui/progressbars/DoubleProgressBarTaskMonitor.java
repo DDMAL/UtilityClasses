@@ -274,14 +274,14 @@ public abstract class DoubleProgressBarTaskMonitor
                if (want_raw_milliseconds)
                     log_data[i][1] = "" + sub_task_durations[i];
                else
-                    log_data[i][1] = findTimeWithProperUnits( (new Long(sub_task_durations[i] / 1000)).intValue() );
+                    log_data[i][1] = findTimeWithProperUnits( (Long.valueOf(sub_task_durations[i] / 1000)).intValue() );
           }
           
           log_data[sub_task_names.length][0] = "TOTAL";
           if (want_raw_milliseconds)
                log_data[sub_task_names.length][1] = "" + (overall_end_time - overall_start_time);
           else
-               log_data[sub_task_names.length][1] = findTimeWithProperUnits( (new Long((overall_end_time - overall_start_time)/1000)).intValue() );
+               log_data[sub_task_names.length][1] = findTimeWithProperUnits( (Long.valueOf((overall_end_time - overall_start_time)/1000)).intValue() );
           
           return log_data;
      }

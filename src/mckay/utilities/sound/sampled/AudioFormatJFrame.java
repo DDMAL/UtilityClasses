@@ -375,7 +375,7 @@ public class AudioFormatJFrame
                else
                {
                     sr_other_rb.setSelected(true);
-                    sr_text_area.setText((new Float(sample_rate * 1000.0F)).toString());
+                    sr_text_area.setText((Float.valueOf(sample_rate * 1000.0F)).toString());
                }
                
                // Set bit depth GUI elements
@@ -385,7 +385,7 @@ public class AudioFormatJFrame
                else
                {
                     bd_other_rb.setSelected(true);
-                    bd_text_area.setText((new Integer(bit_depth)).toString());
+                    bd_text_area.setText((Integer.valueOf(bit_depth)).toString());
                }
                
                // Set channel GUI elements
@@ -395,7 +395,7 @@ public class AudioFormatJFrame
                else
                {
                     chan_other_rb.setSelected(true);
-                    chan_text_area.setText((new Integer(bit_depth)).toString());
+                    chan_text_area.setText((Integer.valueOf(bit_depth)).toString());
                }
                
                // Set signed GUI elements

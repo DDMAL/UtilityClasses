@@ -483,7 +483,7 @@ public class AudioSamples
       */
      public double getSamplingRateAsDouble()
      {
-          return (new Float(audio_format.getSampleRate())).doubleValue();
+          return (Float.valueOf(audio_format.getSampleRate())).doubleValue();
      }
      
      
@@ -1394,7 +1394,7 @@ public class AudioSamples
           else if (sample_index >= samples.length)
                sample_index = samples.length - 1;
           float time = sample_index / audio_format.getSampleRate();
-          return (new Float(time)).doubleValue();
+          return (Float.valueOf(time)).doubleValue();
      }
      
      
