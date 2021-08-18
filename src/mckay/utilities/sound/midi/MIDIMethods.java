@@ -137,81 +137,77 @@ public class MIDIMethods
      }
      
      
-     /**
-      * Returns an array with an entry for each MIDI tick in the given MIDI
-      * sequence. The value at each indice gives the duration of a tick in
-      * seconds at that particular point in the recording. Tempo change
-      * messages ARE taken into account.
-      *
-      * @param	sequence The MIDI Sequence from which to extract the tick
-      *                  durations.
-      * @return          An array with an entry for each MIDI tick in the given
-      *                  MIDI sequence.
-      */
-     public static double[] getSecondsPerTick(Sequence sequence)
-     {
-          // Find the number of PPQ ticks per beat
-          int ticks_per_beat = sequence.getResolution();
-          
-          // Caclulate the average number of MIDI ticks corresponding to 1 second of score time
-          // Note that we round down with int due to error obtained from the getMicroSecondLength() functions.
-          // This returns inconsistent values with respect to the placement of notes relative to the PPQ.
-          // This causes a very subtle error due to what seems like rounding at the lower end of the decimal
-          // point area. Converting to int eliminates this minor error and proves to be consistent due to the
-          // fact that the second length is much less than the tick length in all cases
-          // (i.e. varied PPQs and midi event tick placements).
-          //TODO check if this solution of going from int to double is correct, maybe better to round but probably not
-          double mean_ticks_per_sec = (int)(((double) sequence.getTickLength()) / ((double) sequence.getMicrosecondLength() / 1000000.0));
+	/**
+	 * Returns an array with an entry for each MIDI tick in the given MIDI sequence. The value of each entry
+	 * specifies the duration of a tick in seconds at that particular point in the sequence. Tempo change
+	 * messages ARE taken into account.
+	 *
+	 * @param	sequence	The MIDI Sequence from which to calculate tick durations.
+	 * @return				An array with an entry for each MIDI tick in the given MIDI sequence, plus one.
+	 */
+	public static double[] getSecondsPerTick(Sequence sequence)
+	{
+		// Find the number of PPQ ticks per quarter note beat
+		int ticks_per_beat = sequence.getResolution();
 
-          // Instantiate seconds_per_tick array and initialize entries to the average
-          // number of ticks per second
-          double[] seconds_per_tick = new double[ (int) sequence.getTickLength() + 1];
-          for (int i = 0; i < seconds_per_tick.length; i++)
-               seconds_per_tick[i] = 1.0 / mean_ticks_per_sec;
-          
-          // Get the MIDI tracks from the Sequence
-          Track[] tracks = sequence.getTracks();
-          
-          // Fill in seconds_per_tick to reflect dynamic tempo changes
-          for (int n_track = 0; n_track < tracks.length; n_track++)
-          {
-               // Go through all the events in the current track, searching for tempo
-               // change messages
-               Track track = tracks[n_track];
-               for (int n_event = 0; n_event < track.size(); n_event++)
-               {
-                    // Get the MIDI message corresponding to the next MIDI event
-                    MidiEvent event = track.get(n_event);
-                    MidiMessage message = event.getMessage();
-                    
-                    // If message is a MetaMessage (which tempo change messages are)
-                    if (message instanceof MetaMessage)
-                    {
-                         MetaMessage meta_message = (MetaMessage) message;
-                         if (meta_message.getType() == 0x51) // tempo change message
-                         {
-                              // Find the number of microseconds per beat
-                              byte[]	meta_data = meta_message.getData();
-                              int	microseconds_per_beat = ((meta_data[0] & 0xFF) << 16)
-                              | ((meta_data[1] & 0xFF) << 8)
-                              | (meta_data[2] & 0xFF);
-                              
-                              // Find the number of seconds per tick
-                              double current_seconds_per_tick = ((double) microseconds_per_beat) / ((double) ticks_per_beat);
-                              current_seconds_per_tick = current_seconds_per_tick / 1000000.0;
-                              
-                              // Make all subsequent tempos be at the current_seconds_per_tick rate
-                              for (int i = (int) event.getTick(); i < seconds_per_tick.length; i++)
-                                   seconds_per_tick[i] = current_seconds_per_tick;
-                         }
-                    }
-               }
-          }
-          
-          // Return the results
-          return seconds_per_tick;
-     }
+		// Caclulate the average number of MIDI ticks corresponding to 1 second of score time
+		// Note that we round down with int due to error obtained from the getMicroSecondLength() functions.
+		// This returns inconsistent values with respect to the placement of notes relative to the PPQ.
+		// This causes a very subtle error due to what seems like rounding at the lower end of the decimal
+		// point area. Converting to int eliminates this minor error and proves to be consistent due to the
+		// fact that the second length is much less than the tick length in all cases
+		// (i.e. varied PPQs and midi event tick placements).
+		//TODO check if this solution of going from int to double is correct, maybe better to round but probably not
+		double mean_ticks_per_sec = (int) (((double) sequence.getTickLength()) / ((double) sequence.getMicrosecondLength() / 1000000.0));
 
+		// Instantiate seconds_per_tick array and initialize entries to the average number of seconds per tick
+		double[] seconds_per_tick = new double[(int) sequence.getTickLength() + 1];
+		for (int i = 0; i < seconds_per_tick.length; i++)
+			seconds_per_tick[i] = 1.0 / mean_ticks_per_sec;
+
+		// Get the MIDI tracks from the Sequence
+		Track[] tracks = sequence.getTracks();
+
+		// Fill in seconds_per_tick to reflect dynamic tempo changes
+		for (int n_track = 0; n_track < tracks.length; n_track++)
+		{
+			// Go through all the events in the current track, searching for tempo change messages
+			Track track = tracks[n_track];
+			for (int n_event = 0; n_event < track.size(); n_event++)
+			{
+				// Get the MIDI message corresponding to the next MIDI event
+				MidiEvent event = track.get(n_event);
+				MidiMessage message = event.getMessage();
+
+				// If message is a MetaMessage (which tempo change messages are)
+				if (message instanceof MetaMessage)
+				{
+					MetaMessage meta_message = (MetaMessage) message;
+					if (meta_message.getType() == 0x51) // tempo change message
+					{
+						// Find the number of microseconds per beat
+						byte[] meta_data = meta_message.getData();
+						int microseconds_per_beat = ((meta_data[0] & 0xFF) << 16)
+													| ((meta_data[1] & 0xFF) << 8)
+													| (meta_data[2] & 0xFF);
+
+						// Find the number of seconds per tick
+						double current_seconds_per_tick = ((double) microseconds_per_beat) / ((double) ticks_per_beat);
+						current_seconds_per_tick = current_seconds_per_tick / 1000000.0;
+
+						// Make all subsequent tempos be at the current_seconds_per_tick rate
+						for (int i = (int) event.getTick(); i < seconds_per_tick.length; i++)
+							seconds_per_tick[i] = current_seconds_per_tick;
+					}
+				}
+			}
+		}
+
+		// Return the results
+		return seconds_per_tick;
+	}
+
+	
     /**
      * Returns the cummulative seconds up until the given at_tick.
      * @param at_tick Tick to stop at (including).
@@ -227,97 +223,104 @@ public class MIDIMethods
      }
      
      
-     /**
-      * <B>IMPORTANT: THIS METHOD IS DEPENDENT ON getStartEndTickArrays()
-      * method below for int[] start_ticks and int[] end_ticks.</b>
-      *
-      * Breaks the given MIDI Sequence into windows of equal duration. These
-      * windows may or may not be overlapping. The original Sequence is not
-      * changed. Tempo change messages ARE taken into account, so different
-      * windows will have the same time duration, but not necessarily the same
-      * number of MIDI ticks.
-      *
-      * @param	original_sequence	The MIDI Sequence to break into windows.
-      * @param	window_duration		The duration in seconds of each window.
-      * @param	window_overlap_offset   The number of seconds that windows are
-      *                                 offset by. A value of zero means that
-      *                                 there is no window overlap.
-      * @param window_start_ticks       MIDI start ticks corresponding
-      *                                 to each MIDI sequence window.
-      * @param window_end_ticks         MIDI end ticks corresponding
-      *                                 to each MIDI sequence window.
-      * @return				An array of sequences representing the
-      *					windows of the original sequence in
-      *					consecutive order.
-      * @throws	Exception		Throws an informative exception if the
-      *					MIDI file uses SMTPE timing instead of
-      *					PPQ timing or if it is too large.
-      */
-     public static Sequence[] breakSequenceIntoWindows( Sequence original_sequence,
-                                                        double window_duration,
-                                                        double window_overlap_offset,
-                                                        int[] window_start_ticks,
-                                                        int[] window_end_ticks)
-          throws Exception
-     {
-          if (original_sequence.getDivisionType() != Sequence.PPQ)
-               throw new Exception("The specified MIDI sequence uses SMPTE time encoding." +
-                    "\nOnly PPQ time encoding is accepted here.");
-          if ( ((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
-               throw new Exception("The MIDI sequence could not be processed because it is too long.");
-          
-          // Prepare the sequences representing each window of MIDI data and the tracks in
-          // each sequence
-          Sequence[] windowed_sequences = new Sequence[window_start_ticks.length];
-          Track[][] windowed_tracks = new Track[window_start_ticks.length][];
-          for (int win = 0; win < windowed_sequences.length; win++)
-          {
-               windowed_sequences[win] = new Sequence( original_sequence.getDivisionType(),
-                    original_sequence.getResolution(),
-                    original_sequence.getTracks().length );
-               windowed_tracks[win] = windowed_sequences[win].getTracks();
-          }
-          
-          // Prepare the original tracks of MIDI data
-          Track[] original_tracks = original_sequence.getTracks();
+	/**
+	 * Breaks the given MIDI Sequence into windows, which may or may not be overlapping. The original Sequence
+	 * is not changed. Tempo change messages ARE taken into account, so different windows will have the same
+	 * time duration, but not necessarily the same number of MIDI ticks. IMPORTANT: The specified
+	 * window_start_ticks and window_end_ticks parameters should typically be calculated with this class'
+	 * getStartEndTickArrays method.
+	 *
+	 * @param original_sequence		The MIDI Sequence to break into windows (it is not itself changed).
+	 * @param window_duration		The duration in seconds of each window.
+	 * @param window_overlap_offset	The number of seconds that overlapping windows are offset by. A value of
+	 *								of zero means that there is no window overlap.
+	 * @param window_start_ticks    MIDI ticks corresponding to the start of each MIDI sequence window.
+	 * @param window_end_ticks      MIDI ticks corresponding to the end of each MIDI sequence window.
+	 * @return						An array of sequences representing the windows of the original sequence,
+	 *								in consecutive order.
+	 * @throws Exception			Throws an informative exception if the MIDI file uses SMTPE timing instead 
+	 *								of PPQ timing or if it is too large.
+	 */
+	public static Sequence[] breakSequenceIntoWindows( Sequence original_sequence,
+													   double window_duration,
+													   double window_overlap_offset,
+													   int[] window_start_ticks,
+													   int[] window_end_ticks )
+	throws Exception
+	{
+		if (original_sequence.getDivisionType() != Sequence.PPQ)
+			throw new Exception("The specified MIDI sequence uses SMPTE time encoding."
+								+ "\nOnly PPQ time encoding is accepted here.");
+		if (((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
+			throw new Exception("The MIDI sequence could not be processed because it is too long.");
 
-          //Add an immutable end of track message to each track so we know
-          //where the true end of track is with respect to the original sequence.
-          //This is a natural solution to passing meta messages through subsequent windows
-          for(Track track : original_tracks) {
-              MidiMessage endOfTrack = new MetaMessage(0x2F, new byte[]{}, 0);
-              track.add(new MidiEvent(endOfTrack, original_sequence.getTickLength()));
-          }
-               
-          int current_sequence_index = 0;
-          for(int track_index = 0; track_index < original_tracks.length; track_index++) 
-          {
-              Track originalTrack = original_tracks[track_index];
-              MIDISpecialEvents specialEvents = new MIDISpecialEvents();
-              for(int event_index = 0; event_index < originalTrack.size(); event_index++)
-              {
-                  //Get all required data needed for window
-                  MidiEvent thisEvent = originalTrack.get(event_index);
-                  int startTick = (int)thisEvent.getTick();
-                  int sequence_index = getSequenceIndex(startTick, window_start_ticks, window_end_ticks);
-                  Track thisTrack = windowed_tracks[sequence_index][track_index];
-                  
-                  //Check for special events and if we need to copy to new window sequence
-                  current_sequence_index = checkForNewSequence(current_sequence_index, sequence_index, track_index,
-                          thisTrack, specialEvents, windowed_tracks, window_start_ticks, window_end_ticks);
-                  checkForSpecialMidiEvent(thisEvent, specialEvents);
+		// Prepare the sequences representing each window of MIDI data and the tracks in each sequence
+		int number_windows = window_start_ticks.length;
+		Sequence[] windowed_sequences = new Sequence[number_windows];
+		Track[][] windowed_tracks = new Track[number_windows][];
+		for (int win = 0; win < windowed_sequences.length; win++)
+		{
+			windowed_sequences[win] = new Sequence(original_sequence.getDivisionType(),
+												   original_sequence.getResolution(),
+												   original_sequence.getTracks().length);
+			windowed_tracks[win] = windowed_sequences[win].getTracks();
+		}
 
-                  //Normalize event to specified sequence and add to track
-                  //Then add this event to all appropriate windowed sequences
-                  passEventToAllAppropriateWindows(thisEvent, window_overlap_offset, sequence_index, startTick,
-                          track_index, window_start_ticks, window_end_ticks, windowed_tracks);
-              }
-          }
+		// Prepare the original tracks of MIDI data
+		Track[] original_tracks = original_sequence.getTracks();
 
-          // Return the windows of MIDI data
-          return windowed_sequences;
-     }
+		// Add an immutable end of track message to each track so we know where the true end of track is with
+		// respect to the original sequence. This is a natural solution to passing MIDI meta-messages through
+		// subsequent windows.
+		for (Track track : original_tracks)
+		{
+			MidiMessage end_of_track = new MetaMessage(0x2F, new byte[]{}, 0);
+			track.add(new MidiEvent(end_of_track, original_sequence.getTickLength()));
+		}
 
+		// Break into windows
+		int current_sequence_index = 0;
+		for (int track_index = 0; track_index < original_tracks.length; track_index++)
+		{
+			Track original_track = original_tracks[track_index];
+			MIDISpecialEvents special_events = new MIDISpecialEvents();
+			for (int event_index = 0; event_index < original_track.size(); event_index++)
+			{
+				// Get all required data needed for window
+				MidiEvent this_event = original_track.get(event_index);
+				int start_tick = (int) this_event.getTick();
+				int window_index = getWindowIndex(start_tick, window_start_ticks, window_end_ticks);
+				Track this_track = windowed_tracks[window_index][track_index];
+
+				// Check for special events and if we need to copy to new window sequence
+				current_sequence_index = checkForNewSequence( current_sequence_index,
+															  window_index,
+															  track_index,
+															  this_track,
+															  special_events,
+															  windowed_tracks,
+															  window_start_ticks,
+															  window_end_ticks );
+				checkForSpecialMidiEvent(this_event, special_events);
+
+				// Normalize event to specified sequence and add to track
+				// Then add this event to all appropriate windowed sequences
+				passEventToAllAppropriateWindows( this_event,
+												  window_overlap_offset,
+												  window_index,
+												  start_tick,
+												  track_index,
+												  window_start_ticks,
+												  window_end_ticks,
+												  windowed_tracks );
+			}
+		}
+
+		// Return the windows of MIDI data
+		return windowed_sequences;
+	}
+
+	 
     /**
      * Used for general testing of midi events within a particular track.
      * Currently, it will print out detailed information about tempo messages
@@ -356,64 +359,85 @@ public class MIDIMethods
         return sb.toString();
     }
      
-     /**
-      * Get the start and end tick arrays so that they only need to be processed
-      * once during general file processing.
-      * @param original_sequence the original sequence to be processed
-      * @param window_duration window duration given by user
-      * @param window_overlap_offset window overlap offset given by user
-      * @param seconds_per_tick number of seconds per tick for the given original_sequence
-      * @return a list of int[] where list.get(0) will return startTicks[] and
-      *         list.get(1) will return endTicks[]
-      * @throws Exception	Throws an informative exception if a problem occurs.
-      */
-     public static List<int[]> getStartEndTickArrays(Sequence original_sequence,
-                                                        double window_duration,
-                                                        double window_overlap_offset,
-                                                        double[] seconds_per_tick) throws Exception {
-         if (original_sequence.getDivisionType() != Sequence.PPQ)
-               throw new Exception("The specified MIDI sequence uses SMPTE time encoding." +
-                    "\nOnly PPQ time encoding is accepted here.");
-          if ( ((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
-               throw new Exception("The MIDI sequence could not be processed because it is too long.");
-          
-          // Calculate the window start and end tick indices
-          List<Integer> window_start_ticks_list = new LinkedList<>();
-          List<Integer> window_end_ticks_list = new LinkedList<>();
-          double total_duration = original_sequence.getMicrosecondLength() / 1000000.0;
-          double time_interval_to_next_tick = window_duration - window_overlap_offset;
-          boolean found_next_tick = false;
-          int tick_of_next_beginning = 0;
-          int this_tick = 0;
-          double total_seconds_accumulated_so_far = 0.0;
-          while (total_seconds_accumulated_so_far <= total_duration && this_tick < seconds_per_tick.length)
-          {
-               window_start_ticks_list.add(this_tick);
-               double seconds_accumulated_so_far = 0.0;
-               while (seconds_accumulated_so_far < window_duration && this_tick < seconds_per_tick.length)
-               {
-                    seconds_accumulated_so_far += seconds_per_tick[this_tick];
-                    this_tick++;
-                    if (!found_next_tick && seconds_accumulated_so_far >= time_interval_to_next_tick)
-                    {
-                            tick_of_next_beginning = this_tick;
-                            found_next_tick = true;
-                    }
-               }
-               window_end_ticks_list.add(this_tick - 1);
-               if (found_next_tick)
-                    this_tick = tick_of_next_beginning;
-               found_next_tick = false;
-               total_seconds_accumulated_so_far += seconds_accumulated_so_far - window_overlap_offset;
-          }
+	
+    /**
+     * Calculate the window start and end MIDI ticks for a given MIDI sequence, based on the specified
+	 * parameters. Each window (except potentially the last) will be of a uniform time duration. The MIDI
+	 * sequence itself is needed because of the potential for varying MIDI tick time durations due, for
+	 * example, to tempo change messages.
+	 *
+	 * @param original_sequence		The MIDI sequence for which windows are to be calculated.
+	 * @param window_duration       The duration in seconds of each window to be calculated.
+	 * @param window_overlap_offset The offset in seconds of overlapping windows. 0 if there is no overlap.
+	 * @param seconds_per_tick      An array with one entry per MIDI tick in original_sequence, and where 
+	 *								each value indicates the duration in seconds of that tick.
+	 * @return						A list of two integer arrays, the first of which consists of an array 
+	 *								indicating the start MIDI ticks of each window, and the second of which
+	 *								indicates the end MIDI ticks of each corresponding window, in sequence.
+	 * @throws Exception			Throws an informative exception if a problem occurs, such as in the case
+	 *								of SMPTE (rather than PPQ) time encoding or a sequence that is too long.
+	 */
+	public static List<int[]> getStartEndTickArrays( Sequence original_sequence,
+													 double window_duration,
+													 double window_overlap_offset,
+													 double[] seconds_per_tick )
+	throws Exception
+	{
+		if (original_sequence.getDivisionType() != Sequence.PPQ)
+			throw new Exception("The specified MIDI sequence uses SMPTE time encoding."
+								+ "\nOnly PPQ time encoding is accepted here.");
+		if (((double) original_sequence.getTickLength()) > ((double) Integer.MAX_VALUE) - 1.0)
+			throw new Exception("The MIDI sequence could not be processed because it is too long.");
 
-          List<int[]> startEndTickList = new ArrayList<>();
-          int[] start_tick_array = Arrays.stream(window_start_ticks_list.toArray(new Integer[0])).mapToInt(i->i).toArray();
-          int[] end_tick_array = Arrays.stream(window_end_ticks_list.toArray(new Integer[0])).mapToInt(i->i).toArray();
-          startEndTickList.add(start_tick_array);
-          startEndTickList.add(end_tick_array);
-          return startEndTickList;
-     }
+		// Calculate the window start and end tick indices
+		List<Integer> window_start_ticks_list = new LinkedList<>();
+		List<Integer> window_end_ticks_list = new LinkedList<>();
+		double total_duration = original_sequence.getMicrosecondLength() / 1000000.0;
+		double time_interval_to_next_tick = window_duration - window_overlap_offset;
+		boolean found_next_tick = false;
+		int tick_of_next_beginning = 0;
+		int this_tick = 0;
+		double total_seconds_accumulated_so_far = 0.0;
+		while (total_seconds_accumulated_so_far <= total_duration && this_tick < seconds_per_tick.length)
+		{
+			window_start_ticks_list.add(this_tick);
+			double seconds_accumulated_so_far = 0.0;
+			while (seconds_accumulated_so_far < window_duration && this_tick < seconds_per_tick.length)
+			{
+				seconds_accumulated_so_far += seconds_per_tick[this_tick];
+				this_tick++;
+				if (!found_next_tick && seconds_accumulated_so_far >= time_interval_to_next_tick)
+				{
+					tick_of_next_beginning = this_tick;
+					found_next_tick = true;
+				}
+			}
+			window_end_ticks_list.add(this_tick - 1);
+			if (found_next_tick)
+				this_tick = tick_of_next_beginning;
+			found_next_tick = false;
+			total_seconds_accumulated_so_far += seconds_accumulated_so_far - window_overlap_offset;
+		}
+		
+		// Set up start and end tick arrays
+		int[] start_tick_array = Arrays.stream(window_start_ticks_list.toArray(new Integer[0])).mapToInt(i -> i).toArray();
+		int[] end_tick_array = Arrays.stream(window_end_ticks_list.toArray(new Integer[0])).mapToInt(i -> i).toArray();
+
+		// Adjust all end ticks to be one tick later and all start ticks but the last to be one tick ahead.
+		// This is to account for Note Ons starting on tick 0, not tick 1.
+		for (int window = 0; window < start_tick_array.length; window++)
+		{
+			if (window != 0)
+				start_tick_array[window] = start_tick_array[window] + 1;
+			end_tick_array[window] = end_tick_array[window] + 1;
+		}
+
+		// Set up and return the lists
+		List<int[]> start_end_tick_list = new ArrayList<>();
+		start_end_tick_list.add(start_tick_array);
+		start_end_tick_list.add(end_tick_array);
+		return start_end_tick_list;
+	}
 
      
      /**
@@ -668,44 +692,50 @@ public class MIDIMethods
         return metaTypeByte;
     }
 
-     /**
-      * Helper method for breakSequenceIntoWindows to validate tick indices and
-      * to be able to get the appropriate sequence window.
-      * @param thisTick tick to be checked between start and end ticks
-      * @param window_start_ticks array of start ticks
-      * @param window_end_ticks array of end ticks
-      * @return the appropriate index but if some error occurred -1
-      */
-     private static int getSequenceIndex(long thisTick, int[] window_start_ticks, int[] window_end_ticks) {
-         int intTick = (int)thisTick; //checked 
-         
-         //Check if thisTick is greater than last start tick
-         //this is useful for window overlaps that wont be recognized otherwise
-         int lastIndex = window_end_ticks.length - 1;
-         if(intTick > window_end_ticks[lastIndex]) {
-             return lastIndex;
-         }
-         //Also check if it is in the last window and so just return it
-         if(intTick >= window_start_ticks[lastIndex] &&
-                 intTick <= window_end_ticks[lastIndex]) {
-             return lastIndex;
-         }
-         
-         //Check all ticks to find last proper window
-         //This allows for natural copying of midi events to previous windows
-         boolean found_index = false;
-         int last_index_found = 0;
-         for(int i = 0; i < window_start_ticks.length; i++) {
-             if(window_start_ticks[i] <= intTick && window_end_ticks[i] >= intTick) {
-                 found_index = true;
-                 last_index_found = i;
-             }
-             else if(found_index && intTick <= window_start_ticks[i]) {
-                 return last_index_found;
-             }
-         }
-         return -1; //this only happens if an error occured
-     }
+	
+	/**
+	 * Helper method for breakSequenceIntoWindows to validate tick indices and return the appropriate window
+	 * index for the specified this_tick MIDI tick.
+	 *
+	 * @param this_tick				MIDI tick to return a window index for.
+	 * @param window_start_ticks	The array of window start ticks.
+	 * @param window_end_ticks		The array of window end ticks.
+	 * @return						The appropriate window index of this_tick, or -1 if some error occurred.
+	 */
+	private static int getWindowIndex(long this_tick, int[] window_start_ticks, int[] window_end_ticks)
+	{
+		// Convert this_tick to an integer
+		int this_tick_int = (int) this_tick; //checked 
+
+		// Check if this_tick is greater than the last window's end tick.
+		// This is needed for window overlaps that won't be recognized otherwise.
+		int last_window_index = window_end_ticks.length - 1;
+		if (this_tick_int > window_end_ticks[last_window_index])
+			return last_window_index;
+
+		// Check if this_tick is in the last window and, if so, just return the index of the last window.
+		if ( this_tick_int >= window_start_ticks[last_window_index] && 
+			 this_tick_int <= window_end_ticks[last_window_index])
+			return last_window_index;
+
+		//Check all ticks to find last proper window
+		//This allows for natural copying of midi events to previous windows
+		boolean found_index = false;
+		int last_index_found = 0;
+		for (int i = 0; i < window_start_ticks.length; i++)
+		{
+			if (window_start_ticks[i] <= this_tick_int && window_end_ticks[i] >= this_tick_int)
+			{
+				found_index = true;
+				last_index_found = i;
+			}
+			else if (found_index && this_tick_int <= window_start_ticks[i])
+				return last_index_found;
+		}
+
+		// Return -1 if there is a problem
+		return -1;
+	}
 	 
 	 
 	/**

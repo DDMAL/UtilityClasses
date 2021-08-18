@@ -616,7 +616,7 @@ public class MathAndStatsMethods
 
 	
 	/**
-	 * Returns the standard deviation of a set of ints. Returns 0 if there is only one piece of data.
+	 * Returns the sample standard deviation of a set of ints. Returns 0 if there is only one piece of data.
 	 *
 	 * @param	data	The data for which the standard deviation is to be found.
 	 * @return			The standard deviation of the given data. 0 if data consists of less than 2 entries.
@@ -640,7 +640,7 @@ public class MathAndStatsMethods
 
 	
 	/**
-	 * Returns the standard deviation of a set of shorts. Returns 0 if there is only one piece of data.
+	 * Returns the sample standard deviation of a set of shorts. Returns 0 if there is only one piece of data.
 	 *
 	 * @param	data	The data for which the standard deviation is to be found.
 	 * @return			The standard deviation of the given data. 0 if data consists of less than 2 entries.
@@ -664,7 +664,8 @@ public class MathAndStatsMethods
 
 	
 	/**
-	 * Returns the standard deviation of a set of doubles. Returns 0 if there is only one piece of data.
+	 * Returns the sample standard deviation of a set of doubles. Returns 0 if there is only one piece of 
+	 * data.
 	 *
 	 * @param	data	The data for which the standard deviation is to be found.
 	 * @return			The standard deviation of the given data. 0 if data consists of less than 2 entries.
@@ -688,38 +689,50 @@ public class MathAndStatsMethods
 
 	
 	/**
-	 * Calculates the median skewness of the given data. More specifically, this is Pearson's second skewness
-	 * coefficient. A negative value indicates a left skew, and a positive value indicates a right skew.
+	 * Calculates the sample skewness of the given data using the adjusted Fisher-Pearson standardized moment 
+	 * coefficient. Provides a measure of how asymmetrical the distribution is: a value of zero indicates a
+	 * symmetrical distribution, a negative value indicates a left skew and a positive value indicates a right
+	 * skew. Formula taken from https://www.spss-tutorials.com/skewness/, and follows the implementation of 
+	 * the SKEW function in Microsoft Excel.
 	 *
-	 * @param	data	The data for which the median skewness is to be found.
-	 * @return			The median skewness of the provided data. 0 if data consists of less than 3 entries or 
-	 *					if it has a standard deviation of 0.0.
+	 * @param	data	The data for which the sample skewness is to be calculated.
+	 * @return			The skewness of the provided data. Artificially set to 0 if data consists of fewer 
+	 *					than 3 entries or if it has a standard deviation of 0.0.
 	 */
-	public static double getMedianSkewness(double[] data)
+	public static double getSkewness(double[] data)
 	{
 		if (data.length < 3)
 			return 0.0;
 
+		double size = (double) data.length;
 		double mean = getAverage(data);
-		double median = data[getIndexOfMedian(data)];
 		double standard_deviation = getStandardDeviation(data);
 
 		if (standard_deviation == 0.0)
 			return 0.0;
 
-		return 3.0 * (mean - median) / standard_deviation;
+		double sum_of_differences = 0.0;
+		for (int i = 0; i < size; i++)
+			sum_of_differences += Math.pow((data[i] - mean), 3);
+		double numerator = size * sum_of_differences;
+		double denominator = Math.pow(standard_deviation, 3) * (size - 1) * (size - 2);
+		
+		return numerator / denominator;
 	}
 
 	
 	/**
-	 * Calculates the median skewness of the given data. More specifically, this is Pearson's second skewness
-	 * coefficient. A negative value indicates a left skew, and a positive value indicates a right skew.
+	 * Calculates the sample skewness of the given data using the adjusted Fisher-Pearson standardized moment 
+	 * coefficient. Provides a measure of how asymmetrical the distribution is: a value of zero indicates a
+	 * symmetrical distribution, a negative value indicates a left skew and a positive value indicates a right
+	 * skew. Formula taken from https://www.spss-tutorials.com/skewness/, and follows the implementation of 
+	 * the SKEW function in Microsoft Excel.
 	 *
-	 * @param	data	The data for which the median skewness is to be found.
-	 * @return			The median skewness of the provided data. 0 if data consists of less than 3 entries or
-	 *					if it has a standard deviation of 0.0.
+	 * @param	data	The data for which the skewness is to be calculated.
+	 * @return			The skewness of the provided data. Artificially set to 0 if data consists of fewer 
+	 *					than 3 entries or if it has a standard deviation of 0.0.
 	 */
-	public static double getMedianSkewness(short[] data)
+	public static double getSkewness(short[] data)
 	{
 		if (data.length < 3)
 			return 0.0;
@@ -728,19 +741,22 @@ public class MathAndStatsMethods
 		for (int i = 0; i < data.length; i++)
 			copy[i] = (double) data[i];
 		
-		return getMedianSkewness(copy);
+		return getSkewness(copy);
 	}
 
 	
 	/**
-	 * Calculates the sample excess kurtosis for the given data. This measures how peaked or flat the data is.
-	 * The higher the kurtosis, the more the data is clustered near the mean and the fewer outliers there are.
+	 * Calculates the sample excess kurtosis of the given data. A normal distribution has a value of 0. 
+	 * A higher kurtosis means that the tails are fatter, and a lower kurtosis means that they are skinnier. 
+	 * A distribution with a higher kurtosis is more likely to have extreme values. Formula taken from
+	 * https://www.macroption.com/excess-kurtosis/, and follows the implementation of the KURT function in
+	 * Microsoft Excel.
 	 *
-	 * @param	data	the data for which the median kurtosis is to be found.
-	 * @return			The sample excess kurtosis of the provided data. 0 if data consists of less than 4 
-	 *					entries or if the standard deviation is 0.0.
+	 * @param	data	The data for which the kurtosis is to be calculated.
+	 * @return			The sample excess kurtosis of the provided data. Artificially set to 0 if data 
+	 *					consists of fewer than 4 entries.
 	 */
-	public static double getSampleExcessKurtosis(double[] data)
+	public static double getExcessKurtosis(double[] data)
 	{
 		if (data.length < 4)
 			return 0.0;
@@ -762,19 +778,22 @@ public class MathAndStatsMethods
 
 		double second_term = (3.0 * (n - 1.0) * (n - 1.0)) / ((n - 2.0) * (n - 3.0));
 
-		return (coefficient * numerator / denominator) + second_term;
+		return (coefficient * numerator / denominator) - second_term;
 	}
 
 	
 	/**
-	 * Calculates the sample excess kurtosis for the given data. This measures how peaked or flat the data is.
-	 * The higher the kurtosis, the more the data is clustered near the mean and the fewer outliers there are.
+	 * Calculates the sample excess kurtosis of the given data. A normal distribution has a value of 0. 
+	 * A higher kurtosis means that the tails are fatter, and a lower kurtosis means that they are skinnier. 
+	 * A distribution with a higher kurtosis is more likely to have extreme values. Formula taken from
+	 * https://www.macroption.com/excess-kurtosis/, and follows the implementation of the KURT function in
+	 * Microsoft Excel.
 	 *
-	 * @param	data	The data for which the median kurtosis is to be found.
-	 * @return			The sample excess kurtosis of the provided data. 0 if data consists of less than 4 
-	 *					entries.
+	 * @param	data	The data for which the kurtosis is to be calculated.
+	 * @return			The sample excess kurtosis of the provided data. Artificially set to 0 if data 
+	 *					consists of fewer than 4 entries.
 	 */
-	public static double getSampleExcessKurtosis(short[] data)
+	public static double getExcessKurtosis(short[] data)
 	{
 		if (data.length < 4)
 			return 0.0;
@@ -783,7 +802,7 @@ public class MathAndStatsMethods
 		for (int i = 0; i < data.length; i++)
 			copy[i] = (double) data[i];
 		
-		return getSampleExcessKurtosis(copy);
+		return getExcessKurtosis(copy);
 	}
 	
 	
