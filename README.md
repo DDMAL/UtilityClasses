@@ -1,6 +1,6 @@
 # UtilityClasses 4.1
 by Cory McKay
-Copyright (C) 2022 (GNU GPL)
+Copyright (C) 2023 (GNU GPL)
 
 
 ### OVERVIEW

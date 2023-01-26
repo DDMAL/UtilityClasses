@@ -228,25 +228,25 @@ public class MiscellaneousMethods
 	
 	
 	/**
-	 * Returns an integer representing a generic interval measure corresponding to the specified specific
-	 * interval. For the purposes of this method, a generic interval is understood to be a measure of the
-	 * number of major or minor scale steps between two pitches, and the specific interval is, for these
-	 * purposes, the number of semitones separating the two pitches. Generic intervals are numbered here such
-	 * that 1 corresponds to a unison, 2 to a second, 3 to a third and so on. Note that the intrinsically
-	 * enharmonic nature of MIDI encoding makes it impossible to distinguish between an augmented fourth and a
-	 * diminished fifth, so by arbitrary convention a tritone is treated as a fourth by this method. In this
-	 * particular case, a general interval is understood to allow octave expansions, meaning that generic
-	 * values larger than an octave are permitted. However, if the specific interval is greater than 21, then
-	 * a value of 128 is returned. 
+	 * Returns an integer representing a diatonic interval measure corresponding to the specified specific
+	 * interval. For the purposes of this method, a diatonic interval is understood to be a measure of the
+	 * number of major or minor scale steps connecting two pitches, and the specific interval is, for these
+	 * purposes, the number of semitones separating the two pitches. Diatonic intervals are numbered here such
+	 * that 1 corresponds to a unison, 2 to a second, 3 to a third and so on. Note, for example, that the
+	 * intrinsically enharmonic nature of MIDI encoding makes it impossible to distinguish between an
+	 * augmented fourth and a diminished fifth, so by arbitrary convention a tritone is treated as a fourth by
+	 * this method. In this particular case, a diatonic interval is understood to allow octave expansions,
+	 * meaning that generic values larger than an octave are permitted. However, if the specific interval is
+	 * greater than 21, then a value of 128 is returned.
 	 *
 	 * @param	specific_interval		The number of semitones that a pitch interval between two notes spans.
 	 *									This value should be positive for a rising interval and negative for a 
 	 *									falling interval.
-	 * @return							The number representing the generic interval that corresponds to the 
+	 * @return							The number representing the diatonic interval that corresponds to the 
 	 *									given specific interval. Will be positive for a rising interval and 
 	 *									negative for a falling interval.
 	 */
-	public static int semitonesToGenericInterval(int specific_interval)
+	public static int semitonesToDiatonicInterval(int specific_interval)
 	{
 		int generic_interval;
 		
